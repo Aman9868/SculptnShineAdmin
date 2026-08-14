@@ -1,0 +1,20 @@
+# SculptnShine Admin Portal Help & Instructions
+
+## Setup Instructions
+1. Navigate to the `sculptnshine-admin` folder.
+2. Install dependencies using `npm install` (this happens automatically during setup).
+3. Ensure the Backend Server is running on `http://localhost:5000`.
+
+## Running the Application
+- Run the Next.js development server using `npm run dev`.
+- The application will be accessible at `http://localhost:3000`.
+
+## Features
+- **Login (`/login`)**: Uses the backend `/api/auth/login` endpoint. It expects the credentials configured in the backend `.env` file (default: `admin@sculptnshine.com`).
+- **Dashboard (`/`)**: A protected route that displays high-level metrics and statistics.
+- **Role-Based Access**: The application intercepts authentication via Axios. It ensures that only users with the `ADMIN` role can access the portal. If a non-admin attempts to log in or access a route, they are securely redirected to the login screen.
+
+## Troubleshooting
+- If you are immediately logged out or get "Access denied", ensure the account you are logging into has the `ADMIN` role in the PostgreSQL database.
+- If API calls fail, check that the backend is running and CORS allows requests from `localhost:3000`.
+- Authentication state is maintained using cookies. If you encounter loop issues, try clearing your browser cookies.
