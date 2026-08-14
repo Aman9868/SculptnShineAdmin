@@ -17,6 +17,7 @@ import {
   Eye
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getMediaUrl } from '@/lib/media';
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<ProductReview[]>([]);
@@ -298,7 +299,7 @@ export default function ReviewsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {review.product?.images?.[0] ? (
-                          <img src={review.product.images[0]} className="w-10 h-10 rounded object-cover border border-gray-200" alt="product" />
+                          <img src={getMediaUrl(review.product.images[0])} className="w-10 h-10 rounded object-cover border border-gray-200" alt="product" />
                         ) : (
                           <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center border border-gray-200"><Package className="w-5 h-5 text-gray-400" /></div>
                         )}
@@ -404,7 +405,7 @@ export default function ReviewsPage() {
                             onClick={() => setSelectedProduct(p)}
                             className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
                           >
-                            {p.images?.[0] ? <img src={p.images[0]} className="w-8 h-8 rounded object-cover" alt="" /> : <Package className="w-8 h-8 p-1 text-gray-400 bg-gray-100 rounded" />}
+                            {p.images?.[0] ? <img src={getMediaUrl(p.images[0])} className="w-8 h-8 rounded object-cover" alt="" /> : <Package className="w-8 h-8 p-1 text-gray-400 bg-gray-100 rounded" />}
                             <span className="text-sm font-medium text-gray-900 truncate">{p.title}</span>
                           </div>
                         ))}
@@ -414,7 +415,7 @@ export default function ReviewsPage() {
                 ) : (
                   <div className="flex items-center justify-between p-3 border border-gold-200 bg-gold-50 rounded-xl">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      {selectedProduct.images?.[0] && <img src={selectedProduct.images[0]} className="w-8 h-8 rounded object-cover" alt="" />}
+                      {selectedProduct.images?.[0] && <img src={getMediaUrl(selectedProduct.images[0])} className="w-8 h-8 rounded object-cover" alt="" />}
                       <span className="text-sm font-medium text-gray-900 truncate">{selectedProduct.title}</span>
                     </div>
                     <button type="button" onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-gray-600 p-1">
@@ -573,7 +574,7 @@ export default function ReviewsPage() {
               {/* Product Info */}
               <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 {viewingReview.product?.images?.[0] ? (
-                  <img src={viewingReview.product.images[0]} className="w-16 h-16 rounded-lg object-cover border border-gray-200" alt="product" />
+                  <img src={getMediaUrl(viewingReview.product.images[0])} className="w-16 h-16 rounded-lg object-cover border border-gray-200" alt="product" />
                 ) : (
                   <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200"><Package className="w-8 h-8 text-gray-400" /></div>
                 )}
