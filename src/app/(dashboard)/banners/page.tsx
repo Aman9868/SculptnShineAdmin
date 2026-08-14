@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
 import Pagination from "@/components/Pagination";
+import SearchableProductSelect from "@/components/SearchableProductSelect";
 import {
   Image as ImageIcon,
   Plus,
@@ -235,7 +236,7 @@ export default function BannersPage() {
         const [catsRes, brandsRes, prodsRes] = await Promise.all([
           api.get("/categories").catch(() => null),
           api.get("/brands").catch(() => null),
-          api.get("/products?limit=50").catch(() => null),
+          api.get("/products?limit=500").catch(() => null),
         ]);
         if (catsRes?.data?.data?.categories) setCategories(catsRes.data.data.categories);
         else if (catsRes?.data?.data) setCategories(catsRes.data.data);
@@ -765,31 +766,22 @@ export default function BannersPage() {
               )}
 
               {formData.type === "HOME_PRODUCT" && (
-                <div className="p-4 bg-rose-50/60 rounded-2xl border border-rose-100 space-y-3">
-                  <label className="block text-xs font-bold text-rose-900 uppercase tracking-wider">
-                    Select Spotlight Product *
-                  </label>
-                  <select
+                <div className="p-4 bg-rose-50/60 rounded-2xl border border-rose-100">
+                  <SearchableProductSelect
+                    products={products}
                     value={formData.productId}
-                    onChange={(e) => {
-                      const pId = e.target.value;
-                      const selectedProd = products.find((p) => p.id === pId);
+                    label="Select Spotlight Product"
+                    placeholder="Search product by title, brand, or SKU..."
+                    required={true}
+                    onChange={(selectedProd) => {
                       setFormData((prev) => ({
                         ...prev,
-                        productId: pId,
+                        productId: selectedProd ? selectedProd.id : "",
                         link: selectedProd ? `/product/${selectedProd.slug}` : prev.link,
                         title: prev.title || (selectedProd ? selectedProd.title : ""),
                       }));
                     }}
-                    className="w-full px-4 py-2.5 rounded-xl border border-rose-200 bg-white text-sm font-medium focus:ring-2 focus:ring-rose-500 outline-none"
-                  >
-                    <option value="">-- Choose Product --</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.title} (SKU: {p.sku})
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
               )}
 
