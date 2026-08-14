@@ -55,7 +55,7 @@ const HealthContext = createContext<HealthContextType>({
   checkHealth: async () => true,
   toggleMaintenanceMode: async () => false,
   nextRetrySeconds: 15,
-  reportNetworkError: () => {},
+  reportNetworkError: () => { },
 });
 
 export const useHealth = () => useContext(HealthContext);
@@ -145,13 +145,15 @@ export function HealthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     checkHealth();
 
-    // Listen for custom API offline events
-    const handleApiOffline = () => reportNetworkError();
-    window.addEventListener("sculptnshine:api-offline", handleApiOffline);
-    return () => {
-      window.removeEventListener("sculptnshine:api-offline", handleApiOffline);
+    // Listen for custom health recheck events
+    const handleHealthRecheck = () => {
+      checkHealth();
     };
-  }, [checkHealth, reportNetworkError]);
+    window.addEventListener("sculptnshine:check-health", handleHealthRecheck);
+    return () => {
+      window.removeEventListener("sculptnshine:check-health", handleHealthRecheck);
+    };
+  }, [checkHealth]);
 
   // Periodic polling & countdown
   useEffect(() => {

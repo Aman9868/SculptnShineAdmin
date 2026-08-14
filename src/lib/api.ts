@@ -71,7 +71,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise<string | null>(function(resolve, reject) {
+        return new Promise<string | null>(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
         }).then(token => {
           originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -100,10 +100,10 @@ api.interceptors.response.use(
         if (!accessToken || !newRefreshToken) {
           throw new Error('Refresh token response was missing tokens');
         }
-        
+
         setTokens(accessToken, newRefreshToken);
         processQueue(null, accessToken);
-        
+
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
@@ -118,11 +118,9 @@ api.interceptors.response.use(
       }
     }
 
-    // If server is unreachable or returning maintenance (503), notify HealthContext
-    if (typeof window !== 'undefined') {
-      if (!error.response || error.code === 'ERR_NETWORK' || error.response?.status === 503) {
-        window.dispatchEvent(new CustomEvent('sculptnshine:api-offline'));
-      }
+    // Only trigger health recheck on 503 Maintenance status
+    if (typeof window !== 'undefined' && error.response?.status === 503) {
+      window.dispatchEvent(new CustomEvent('sculptnshine:check-health'));
     }
 
     return Promise.reject(error);
