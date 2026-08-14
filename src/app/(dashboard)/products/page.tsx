@@ -32,6 +32,7 @@ export default function ProductsPage() {
 
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [kpis, setKpis] = useState({
     totalProducts: 0,
     outOfStockProducts: 0,
@@ -43,6 +44,7 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -69,15 +71,17 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [pagination.page, pagination.limit, selectedCategory, selectedStatus, debouncedSearch]);
+  }, [pagination.page, pagination.limit, selectedCategory, selectedBrand, selectedStatus, debouncedSearch]);
 
   const fetchInitialData = async () => {
     try {
-      const [catRes, kpiRes] = await Promise.all([
+      const [catRes, brandRes, kpiRes] = await Promise.all([
         api.get("/categories"),
+        api.get("/brands"),
         api.get("/products/inventory-status"),
       ]);
-      setCategories(catRes.data.data.categories || []);
+      setCategories(catRes.data.data.categories || catRes.data.data || []);
+      setBrands(brandRes.data.data.brands || brandRes.data.data || []);
       setKpis(kpiRes.data.data || { totalProducts: 0, outOfStockProducts: 0, lowStockProducts: 0 });
     } catch (err) {
       console.error("Failed to load metadata", err);
@@ -97,6 +101,7 @@ export default function ProductsPage() {
         limit: pagination.limit.toString(),
         ...(debouncedSearch && { search: debouncedSearch }),
         ...(selectedCategory && { categoryId: selectedCategory }),
+        ...(selectedBrand && { brandId: selectedBrand }),
         ...(selectedStatus && { status: selectedStatus }),
       });
 
@@ -302,6 +307,23 @@ export default function ProductsPage() {
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Brand Filter */}
+            <select
+              value={selectedBrand}
+              onChange={(e) => {
+                setSelectedBrand(e.target.value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+              className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-gold-500 outline-none transition-all"
+            >
+              <option value="">All Brands</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
                 </option>
               ))}
             </select>
