@@ -3,6 +3,7 @@
 import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { orderAPI } from '@/lib/api/order';
+import { api } from '@/lib/api';
 import { ArrowLeft, Package, Truck, User, MapPin, Calendar, Clock, CreditCard, Save, FileText, Activity, ShoppingBag } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 
@@ -60,19 +61,11 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
   const handleDownloadInvoice = async () => {
     try {
       setIsDownloading(true);
-      const token = localStorage.getItem('accessToken');
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/${orderId}/invoice`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const res = await api.get(`/orders/${orderId}/invoice`, {
+        responseType: 'blob',
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to download invoice');
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([res.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -81,9 +74,10 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
+      showToast('Invoice downloaded successfully', 'success');
+    } catch (error: any) {
       console.error('Error downloading invoice:', error);
-      showToast('Failed to download invoice', 'error');
+      showToast(error.response?.data?.message || error.message || 'Failed to download invoice', 'error');
     } finally {
       setIsDownloading(false);
     }

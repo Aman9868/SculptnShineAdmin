@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { 
   Search, Filter, Download, Plus, MoreVertical, Eye, 
@@ -10,8 +11,10 @@ import {
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import { useToast } from "@/context/ToastContext";
+import { getMediaUrl } from "@/lib/media";
 
 export default function UserManagementPage() {
+  const router = useRouter();
   const { showToast } = useToast();
   const [kpis, setKpis] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
@@ -196,10 +199,10 @@ export default function UserManagementPage() {
               </div>
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder="Search by name, email, or phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 focus:border-gold-500 outline-none w-full md:w-64 bg-gray-50"
+                className="pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 focus:border-gold-500 outline-none w-full md:w-72 bg-gray-50 transition-all"
               />
             </div>
             {/* Filter */}
@@ -245,19 +248,27 @@ export default function UserManagementPage() {
                   const isCurrentUser = currentUser?.id === user.id;
                   const status = user.status || 'ACTIVE'; // Fallback in case old records have no status yet
                   return (
-                    <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="py-3 pl-6 pr-3"><input type="checkbox" className="rounded border-gray-300 text-gold-500 focus:ring-gold-500" /></td>
+                    <tr 
+                      key={user.id} 
+                      onClick={() => router.push(`/users/${user.id}`)}
+                      className="hover:bg-amber-50/40 transition-colors group cursor-pointer"
+                    >
+                      <td className="py-3 pl-6 pr-3" onClick={(e) => e.stopPropagation()}>
+                        <input type="checkbox" className="rounded border-gray-300 text-gold-500 focus:ring-gold-500 cursor-pointer" />
+                      </td>
                       <td className="py-3 px-3 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="h-9 w-9 rounded-full bg-gold-100 text-gold-700 flex flex-shrink-0 items-center justify-center font-bold text-sm overflow-hidden shadow-sm">
                             {user.profileImage ? (
-                              <img src={`http://localhost:5000${user.profileImage}`} alt={user.firstName} className="h-full w-full object-cover" />
+                              <img src={getMediaUrl(user.profileImage)} alt={user.firstName} className="h-full w-full object-cover" />
                             ) : (
-                              user.firstName.charAt(0) + user.lastName.charAt(0)
+                              `${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`
                             )}
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-gray-900">{user.firstName} {user.lastName}</span>
+                            <span className="text-sm font-bold text-gray-900 group-hover:text-gold-700 transition-colors">
+                              {user.firstName} {user.lastName}
+                            </span>
                             {isCurrentUser && (
                               <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">You</span>
                             )}
@@ -272,7 +283,7 @@ export default function UserManagementPage() {
                         )}
                       </td>
                       <td className="py-3 px-3 text-sm text-gray-600 whitespace-nowrap">{user.email}</td>
-                      <td className="py-3 px-3 text-sm text-gray-600 whitespace-nowrap">{getMockPhone(idx)}</td>
+                      <td className="py-3 px-3 text-sm text-gray-600 whitespace-nowrap">{user.phone || getMockPhone(idx)}</td>
                       <td className="py-3 px-3 whitespace-nowrap">
                         <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
                           {status}
@@ -280,9 +291,9 @@ export default function UserManagementPage() {
                       </td>
                       <td className="py-3 px-3 text-sm text-gray-600 whitespace-nowrap">{formatDate(user.createdAt)}</td>
                       <td className="py-3 px-3 text-sm text-gray-600 whitespace-nowrap">{getMockLastLogin(user.createdAt)}</td>
-                      <td className="py-3 pr-6 pl-3 whitespace-nowrap">
+                      <td className="py-3 pr-6 pl-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href={`/users/${user.id}`} className="p-1.5 text-gray-400 hover:text-gold-600 hover:bg-gold-50 rounded-lg transition-colors">
+                          <Link href={`/users/${user.id}`} className="p-1.5 text-gray-400 hover:text-gold-600 hover:bg-gold-50 rounded-lg transition-colors" title="View Profile">
                             <Eye className="h-4 w-4" />
                           </Link>
                           <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
