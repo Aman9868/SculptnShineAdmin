@@ -17,7 +17,10 @@ import {
   RefreshCw,
   Layers,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  GitBranch,
+  Package,
+  Link2
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -571,9 +574,20 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                       <FileSpreadsheet className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-gray-900">{file.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {(file.size / 1024).toFixed(1)} KB • <span className="font-bold text-emerald-600">{parsedRows.length} products detected</span>
-                    </p>
+                    {(() => {
+                      const parentCount = parsedRows.filter(r => !(r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim() && (r.title || r.Title || '')).length;
+                      const variantCount = parsedRows.filter(r => !!(r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim()).length;
+                      return (
+                        <p className="text-xs text-gray-500">
+                          {(file.size / 1024).toFixed(1)} KB • <span className="font-bold text-emerald-600">{parsedRows.length} rows detected</span>
+                          {variantCount > 0 && (
+                            <span className="ml-1 text-gray-400">
+                              ({parentCount} products, {variantCount} variants)
+                            </span>
+                          )}
+                        </p>
+                      );
+                    })()}
                     <button
                       type="button"
                       onClick={(e) => {
@@ -611,56 +625,149 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
               {/* Step 3: Live Preview Table */}
               {parsedRows.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-600 flex items-center gap-2">
-                      <Layers className="w-3.5 h-3.5 text-gold-600" />
-                      Previewing First {Math.min(parsedRows.length, 5)} of {parsedRows.length} Rows
-                    </h4>
-                    <span className="text-2xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                      Ready to Sync
-                    </span>
-                  </div>
+                  {/* Header with summary badges */}
+                  {(() => {
+                    const variantRows = parsedRows.filter(r => !!(r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim());
+                    const parentRows = parsedRows.filter(r => {
+                      const pSku = (r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim();
+                      const sku = (r.sku || r.SKU || '').toString().trim();
+                      return !pSku && variantRows.some(v => (v.parentSku || v.ParentSKU || v.parent_sku || v['Parent SKU'] || '').toString().trim() === sku);
+                    });
+                    const simpleRows = parsedRows.filter(r => {
+                      const pSku = (r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim();
+                      const sku = (r.sku || r.SKU || '').toString().trim();
+                      return !pSku && !variantRows.some(v => (v.parentSku || v.ParentSKU || v.parent_sku || v['Parent SKU'] || '').toString().trim() === sku);
+                    });
+                    return (
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-600 flex items-center gap-2">
+                          <Layers className="w-3.5 h-3.5 text-gold-600" />
+                          Previewing {parsedRows.length} Rows
+                        </h4>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {parentRows.length > 0 && (
+                            <span className="inline-flex items-center gap-1 text-2xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <Package className="w-3 h-3" /> {parentRows.length} Parent{parentRows.length > 1 ? 's' : ''}
+                            </span>
+                          )}
+                          {variantRows.length > 0 && (
+                            <span className="inline-flex items-center gap-1 text-2xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                              <GitBranch className="w-3 h-3" /> {variantRows.length} Variant{variantRows.length > 1 ? 's' : ''}
+                            </span>
+                          )}
+                          {simpleRows.length > 0 && (
+                            <span className="inline-flex items-center gap-1 text-2xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                              {simpleRows.length} Simple
+                            </span>
+                          )}
+                          <span className="text-2xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                            Ready to Sync
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   <div className="border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
-                    <div className="max-h-52 overflow-x-auto overflow-y-auto">
+                    <div className="max-h-72 overflow-x-auto overflow-y-auto">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-gray-100/80 text-gray-700 font-bold border-b border-gray-200 sticky top-0">
+                        <thead className="bg-gray-100/80 text-gray-700 font-bold border-b border-gray-200 sticky top-0 z-10">
                           <tr>
-                            <th className="px-3 py-2">#</th>
+                            <th className="px-3 py-2 w-8">#</th>
+                            <th className="px-3 py-2 w-16">Type</th>
                             <th className="px-3 py-2">Title</th>
                             <th className="px-3 py-2">SKU</th>
                             <th className="px-3 py-2">Brand</th>
-                            <th className="px-3 py-2">Category</th>
+                            <th className="px-3 py-2">Weight</th>
                             <th className="px-3 py-2">Price</th>
                             <th className="px-3 py-2">Stock</th>
                             <th className="px-3 py-2">Status</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white">
-                          {parsedRows.slice(0, 5).map((row, idx) => (
-                            <tr key={idx} className="hover:bg-gray-50/80">
-                              <td className="px-3 py-2 text-gray-400 font-mono text-2xs">{idx + 1}</td>
-                              <td className="px-3 py-2 font-semibold text-gray-900 max-w-[200px] truncate" title={row.title || row.Title}>
-                                {row.title || row.Title || <span className="text-rose-500 font-bold">Missing Title</span>}
-                              </td>
-                              <td className="px-3 py-2 text-gray-600 font-mono text-2xs">
-                                {row.sku || row.SKU || <span className="text-gray-400 italic">Auto-gen</span>}
-                              </td>
-                              <td className="px-3 py-2 text-gray-700">{row.brand || row.Brand || row.brandName || "—"}</td>
-                              <td className="px-3 py-2 text-gray-700">{row.category || row.Category || row.categoryName || "—"}</td>
-                              <td className="px-3 py-2 font-bold text-gray-900">
-                                ₹{row.unitPrice || row.UnitPrice || row.price || 0}
-                              </td>
-                              <td className="px-3 py-2 font-semibold text-gray-800">
-                                {row.stock || row.Stock || row.quantity || 0}
-                              </td>
-                              <td className="px-3 py-2">
-                                <span className="inline-flex px-1.5 py-0.5 rounded text-2xs font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  {row.status || row.Status || "ACTIVE"}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
+                          {parsedRows.map((row, idx) => {
+                            const parentSku = (row.parentSku || row.ParentSKU || row.parent_sku || row['Parent SKU'] || '').toString().trim();
+                            const sku = (row.sku || row.SKU || '').toString().trim();
+                            const isVariant = !!parentSku;
+                            const isParent = !parentSku && parsedRows.some(r => {
+                              const rParent = (r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim();
+                              return rParent === sku && rParent !== '';
+                            });
+                            const title = (row.title || row.Title || '').toString().trim();
+                            const weight = (row.weight || row.Weight || row['Weight / Size'] || '').toString().trim();
+
+                            return (
+                              <tr
+                                key={idx}
+                                className={`transition-colors ${
+                                  isParent
+                                    ? 'bg-emerald-50/40 hover:bg-emerald-50/70'
+                                    : isVariant
+                                    ? 'bg-blue-50/20 hover:bg-blue-50/50'
+                                    : 'hover:bg-gray-50/80'
+                                }`}
+                              >
+                                <td className="px-3 py-2 text-gray-400 font-mono text-2xs">{idx + 1}</td>
+                                <td className="px-3 py-2">
+                                  {isParent ? (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                      <Package className="w-2.5 h-2.5" /> Parent
+                                    </span>
+                                  ) : isVariant ? (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-extrabold bg-blue-100 text-blue-700 border border-blue-200">
+                                      <GitBranch className="w-2.5 h-2.5" /> Variant
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                                      Simple
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 max-w-[200px]" title={title}>
+                                  <div className={`flex items-center gap-1.5 ${isVariant ? 'pl-3' : ''}`}>
+                                    {isVariant && (
+                                      <span className="text-blue-300 flex-shrink-0">└</span>
+                                    )}
+                                    <span className={`truncate ${
+                                      isParent
+                                        ? 'font-extrabold text-emerald-900'
+                                        : isVariant
+                                        ? 'font-medium text-gray-700'
+                                        : 'font-semibold text-gray-900'
+                                    }`}>
+                                      {title || <span className="text-rose-500 font-bold">Missing Title</span>}
+                                    </span>
+                                  </div>
+                                  {isVariant && (
+                                    <div className="flex items-center gap-1 mt-0.5 pl-3">
+                                      <Link2 className="w-2.5 h-2.5 text-blue-400" />
+                                      <span className="text-2xs text-blue-500 font-mono">{parentSku}</span>
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 text-gray-600 font-mono text-2xs">
+                                  {sku || <span className="text-gray-400 italic">Auto-gen</span>}
+                                </td>
+                                <td className="px-3 py-2 text-gray-700">{row.brand || row.Brand || row.brandName || '—'}</td>
+                                <td className="px-3 py-2 text-gray-600 text-2xs">
+                                  {weight ? (
+                                    <span className="bg-purple-50 text-purple-700 font-bold px-1.5 py-0.5 rounded border border-purple-100">{weight}</span>
+                                  ) : '—'}
+                                </td>
+                                <td className="px-3 py-2 font-bold text-gray-900">
+                                  ₹{row.unitPrice || row.UnitPrice || row.price || 0}
+                                </td>
+                                <td className="px-3 py-2 font-semibold text-gray-800">
+                                  {row.stock || row.Stock || row.quantity || 0}
+                                </td>
+                                <td className="px-3 py-2">
+                                  <span className="inline-flex px-1.5 py-0.5 rounded text-2xs font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    {row.status || row.Status || 'ACTIVE'}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -715,12 +822,16 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                 {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Importing {parsedRows.length} Products...
+                    Importing {parsedRows.length} Rows...
                   </>
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    Import {parsedRows.length > 0 ? `${parsedRows.length} Products` : "Products"}
+                    Import {parsedRows.length > 0 ? (() => {
+                      const varCount = parsedRows.filter(r => !!(r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim()).length;
+                      const prodCount = parsedRows.length - varCount;
+                      return varCount > 0 ? `${prodCount} Products + ${varCount} Variants` : `${parsedRows.length} Products`;
+                    })() : "Products"}
                   </>
                 )}
               </button>

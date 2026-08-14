@@ -118,6 +118,13 @@ api.interceptors.response.use(
       }
     }
 
+    // If server is unreachable or returning maintenance (503), notify HealthContext
+    if (typeof window !== 'undefined') {
+      if (!error.response || error.code === 'ERR_NETWORK' || error.response?.status === 503) {
+        window.dispatchEvent(new CustomEvent('sculptnshine:api-offline'));
+      }
+    }
+
     return Promise.reject(error);
   }
 );
