@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { ArrowLeft, Loader2, UploadCloud } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import ImageUploadInput from "@/components/ImageUploadInput";
 
 export default function AddNewCategoryPage() {
   const router = useRouter();
@@ -156,15 +157,13 @@ export default function AddNewCategoryPage() {
             </div>
 
             {/* Right Column: Image Upload */}
-            <div className="lg:col-span-1 space-y-2">
-              <label className="text-sm font-semibold text-gray-700">Category Image</label>
-              <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group">
-                <div className="p-3 bg-white rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                  <UploadCloud className="h-6 w-6 text-gray-500" />
-                </div>
-                <p className="text-sm font-semibold text-gray-700">Upload Image</p>
-                <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 2MB</p>
-              </div>
+            <div className="lg:col-span-1">
+              <ImageUploadInput
+                label="Category Image"
+                value={formData.image}
+                onChange={(img: string) => setFormData({ ...formData, image: img })}
+                helperText="Upload image or paste direct URL"
+              />
             </div>
           </div>
 

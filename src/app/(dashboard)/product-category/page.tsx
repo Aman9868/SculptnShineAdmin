@@ -10,6 +10,8 @@ import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
+import ImageUploadInput from "@/components/ImageUploadInput";
+import { getMediaUrl } from "@/lib/media";
 
 export default function ProductCategoryPage() {
   const router = useRouter();
@@ -317,7 +319,23 @@ export default function ProductCategoryPage() {
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="font-bold text-gray-900 text-sm hover:text-gold-600 transition-colors">{cat.name}</div>
+                        <div className="h-10 w-10 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                          {cat.image ? (
+                            <img
+                              src={getMediaUrl(cat.image)}
+                              alt={cat.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <Activity className="h-5 w-5 text-gray-400" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-bold text-gray-900 text-sm hover:text-gold-600 transition-colors">{cat.name}</div>
+                        </div>
                       </div>
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
@@ -343,10 +361,10 @@ export default function ProductCategoryPage() {
                         <Link href={`/product-category/${cat.id}`} className="p-1.5 text-gray-400 hover:text-gold-600 hover:bg-gold-50 rounded-lg transition-colors" title="View Category Details">
                           <Eye className="h-4 w-4" />
                         </Link>
-                        <button onClick={() => setEditingCategory(cat)} className="p-1.5 text-gray-400 hover:text-gold-600 hover:bg-gold-50 rounded-lg transition-colors" title="Edit Category">
+                        <button onClick={() => setEditingCategory(cat)} className="p-1.5 text-gray-400 hover:text-gold-600 hover:bg-gold-50 rounded-lg transition-colors cursor-pointer" title="Edit Category">
                           <Edit2 className="h-4 w-4" />
                         </button>
-                        <button onClick={() => deleteCategory(cat.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Category">
+                        <button onClick={() => deleteCategory(cat.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Delete Category">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -366,8 +384,8 @@ export default function ProductCategoryPage() {
             total={pagination.total}
             totalPages={pagination.totalPages}
             itemLabel="categories"
-            onPageChange={(newPage) => setPagination((prev) => ({ ...prev, page: newPage }))}
-            onLimitChange={(newLimit) => setPagination((prev) => ({ ...prev, limit: newLimit, page: 1 }))}
+            onPageChange={(newPage: number) => setPagination((prev) => ({ ...prev, page: newPage }))}
+            onLimitChange={(newLimit: number) => setPagination((prev) => ({ ...prev, limit: newLimit, page: 1 }))}
           />
         )}
       </div>
@@ -383,7 +401,7 @@ export default function ProductCategoryPage() {
               </div>
               <button 
                 onClick={() => setEditingCategory(null)} 
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 <XCircle className="h-5 w-5" />
               </button>
@@ -423,30 +441,24 @@ export default function ProductCategoryPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-700">Status</label>
-                  <select
-                    value={editingCategory.status}
-                    onChange={(e) => setEditingCategory({ ...editingCategory, status: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 bg-white font-medium"
-                  >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-700">Image URL</label>
-                  <input
-                    type="text"
-                    value={editingCategory.image || ""}
-                    onChange={(e) => setEditingCategory({ ...editingCategory, image: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500"
-                    placeholder="https://..."
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Status</label>
+                <select
+                  value={editingCategory.status}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 bg-white font-medium"
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
               </div>
+
+              <ImageUploadInput
+                label="Category Image"
+                value={editingCategory.image || ""}
+                onChange={(img: string) => setEditingCategory({ ...editingCategory, image: img })}
+                compact={true}
+              />
 
               <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
                 <button
