@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
-import { ArrowLeft, Loader2, UploadCloud } from "lucide-react";
+import { ArrowLeft, Loader2, UploadCloud, Plus, X, Film, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "@/components/RichTextEditor";
+import { getMediaUrl } from "@/lib/media";
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -206,29 +207,34 @@ export default function EditProductPage() {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const fileFormData = new FormData();
-    fileFormData.append("file", file);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     setIsUploading(true);
     try {
-      const res = await api.post("/upload", fileFormData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const fileUrl = res.data.url;
-      const isVideo = res.data.type === "video" || file.type.startsWith("video/");
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileFormData = new FormData();
+        fileFormData.append("file", file);
 
-      if (isVideo) {
-        setFormData((prev) => ({ ...prev, videos: [...prev.videos, fileUrl] }));
-      } else {
-        setFormData((prev) => ({ ...prev, images: [...prev.images, fileUrl] }));
+        const res = await api.post("/upload", fileFormData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        const fileUrl = res.data.url;
+        const isVideo = res.data.type === "video" || file.type.startsWith("video/");
+
+        if (isVideo) {
+          setFormData((prev) => ({ ...prev, videos: [...prev.videos, fileUrl] }));
+        } else {
+          setFormData((prev) => ({ ...prev, images: [...prev.images, fileUrl] }));
+        }
       }
-    } catch (err) {
-      alert("Failed to upload file");
+      showToast("Media uploaded successfully!", "success");
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to upload file", "error");
     } finally {
       setIsUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -582,26 +588,137 @@ export default function EditProductPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, status: formData.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                      formData.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-gray-200'
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 ${formData.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-gray-200'
+                      }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        formData.status === 'ACTIVE' ? 'translate-x-6' : 'translate-x-1'
-                      }`}
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.status === 'ACTIVE' ? 'translate-x-6' : 'translate-x-1'
+                        }`}
                     />
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Image Upload */}
-            <div className="lg:col-span-1 space-y-4">
-              <label className="text-sm font-semibold text-gray-700">Product Images</label>
-              <div className="w-full h-56 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer p-4 text-center">
-                <UploadCloud className="h-6 w-6 text-gray-500 mb-2" />
-                <p className="text-sm font-semibold text-gray-700">Upload New Image</p>
+            {/* Right Column: Multiple Media Manager (Images & Videos) */}
+            <div className="lg:col-span-1 space-y-6">
+              <div>
+                <label className="text-sm font-semibold text-gray-700 block mb-1">Product Media (Images & Videos)</label>
+                <p className="text-xs text-gray-500 mb-3">Upload multiple product photos and promotional videos.</p>
+
+                {/* Drag and Drop File Upload Area */}
+                <label className="w-full h-36 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer p-4 text-center block relative">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  {isUploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="h-6 w-6 text-gold-500 animate-spin" />
+                      <span className="text-xs font-semibold text-gray-600">Uploading media...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="p-2.5 bg-white rounded-full shadow-sm mb-2">
+                        <UploadCloud className="h-5 w-5 text-gold-600" />
+                      </div>
+                      <p className="text-xs font-bold text-gray-800">Click or drag to upload media</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Images (PNG, JPG) & Videos (MP4, WEBM) up to 50MB</p>
+                    </>
+                  )}
+                </label>
+              </div>
+
+              {/* Add Image URL Direct Input */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-600">Add Image URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={imageUrlInput}
+                    onChange={(e) => setImageUrlInput(e.target.value)}
+                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-gold-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addImageUrl}
+                    className="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors"
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Video URL Direct Input */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-600">Add Video URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://example.com/video.mp4"
+                    value={videoUrlInput}
+                    onChange={(e) => setVideoUrlInput(e.target.value)}
+                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-gold-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addVideoUrl}
+                    className="px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors"
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Media Previews */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Uploaded Media ({formData.images.length + formData.videos.length})
+                </h4>
+
+                {formData.images.length === 0 && formData.videos.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">No media uploaded yet.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Images Previews */}
+                    {formData.images.map((img, idx) => (
+                      <div key={`img-${idx}`} className="relative group aspect-square rounded-xl bg-gray-100 border border-gray-200 overflow-hidden">
+                        <img src={getMediaUrl(img)} alt={`Product image ${idx + 1}`} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                          IMG
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold opacity-90 hover:opacity-100 transition-opacity"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Videos Previews */}
+                    {formData.videos.map((vid, idx) => (
+                      <div key={`vid-${idx}`} className="relative group aspect-square rounded-xl bg-gray-900 border border-gray-200 overflow-hidden flex items-center justify-center">
+                        <video src={getMediaUrl(vid)} className="w-full h-full object-cover" muted />
+                        <span className="absolute bottom-1 left-1 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                          ▶ VID
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeVideo(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold opacity-90 hover:opacity-100 transition-opacity z-10"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
