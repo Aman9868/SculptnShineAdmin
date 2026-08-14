@@ -5,11 +5,15 @@ import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { ArrowLeft, Loader2, Edit2, Trash2, Package, CheckCircle, XCircle, Search, Filter, Download, X } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/context/ToastContext";
+import ImageUploadInput from "@/components/ImageUploadInput";
+import { getMediaUrl } from "@/lib/media";
 
 export default function CategoryDetailsPage() {
   const params = useParams();
   const categoryId = params.id as string;
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [category, setCategory] = useState<any>(null);
   const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -59,10 +63,11 @@ export default function CategoryDetailsPage() {
         image: editingSubcategory.image,
         status: editingSubcategory.status,
       });
+      showToast(`Subcategory "${editingSubcategory.name}" updated successfully!`, "success");
       setEditingSubcategory(null);
       await fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update subcategory");
+      showToast(err.response?.data?.message || "Failed to update subcategory", "error");
     } finally {
       setIsSaving(false);
     }
@@ -80,10 +85,11 @@ export default function CategoryDetailsPage() {
         image: editingCategory.image,
         status: editingCategory.status,
       });
+      showToast(`Category "${editingCategory.name}" updated successfully!`, "success");
       setEditingCategory(null);
       await fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update category");
+      showToast(err.response?.data?.message || "Failed to update category", "error");
     } finally {
       setIsSaving(false);
     }
@@ -93,9 +99,10 @@ export default function CategoryDetailsPage() {
     if (confirm(`Are you sure you want to delete subcategory "${name}"?`)) {
       try {
         await api.delete(`/subcategories/${id}`);
+        showToast("Subcategory deleted successfully!", "success");
         await fetchData();
       } catch (err: any) {
-        alert(err.response?.data?.message || "Failed to delete subcategory");
+        showToast(err.response?.data?.message || "Failed to delete subcategory", "error");
       }
     }
   };
@@ -104,9 +111,10 @@ export default function CategoryDetailsPage() {
     if (confirm("Are you sure you want to delete this category?")) {
       try {
         await api.delete(`/categories/${categoryId}`);
+        showToast("Category deleted successfully!", "success");
         router.push("/product-category");
       } catch (err: any) {
-        alert(err.response?.data?.message || "Failed to delete category");
+        showToast(err.response?.data?.message || "Failed to delete category", "error");
       }
     }
   };
@@ -116,10 +124,11 @@ export default function CategoryDetailsPage() {
       setIsDeleting(true);
       try {
         await Promise.all(selectedIds.map(id => api.delete(`/subcategories/${id}`)));
+        showToast(`${selectedIds.length} subcategories deleted successfully!`, "success");
         setSelectedIds([]);
         await fetchData();
       } catch (err: any) {
-        alert("Failed to delete some subcategories");
+        showToast("Failed to delete some subcategories", "error");
       } finally {
         setIsDeleting(false);
       }
@@ -136,8 +145,9 @@ export default function CategoryDetailsPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      showToast("Exported subcategories to CSV!", "success");
     } catch (err: any) {
-      alert("Failed to export subcategories");
+      showToast("Failed to export subcategories", "error");
     }
   };
 
@@ -332,9 +342,25 @@ export default function CategoryDetailsPage() {
                           />
                         </td>
                         <td className="p-4">
-                          <div>
-                            <p className="font-bold text-gray-900">{sub.name}</p>
-                            <p className="text-xs text-gray-500 font-mono mt-0.5">{sub.slug}</p>
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+                              {sub.image ? (
+                                <img
+                                  src={getMediaUrl(sub.image)}
+                                  alt={sub.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <Package className="h-4 w-4 text-gray-400" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900">{sub.name}</p>
+                              <p className="text-xs text-gray-500 font-mono mt-0.5">{sub.slug}</p>
+                            </div>
                           </div>
                         </td>
                         <td className="p-4">
@@ -385,7 +411,7 @@ export default function CategoryDetailsPage() {
             
             <div className="aspect-video w-full bg-gray-50 rounded-xl border border-gray-100 mb-6 flex flex-col items-center justify-center text-gray-400 overflow-hidden">
               {category.image ? (
-                <img src={category.image} alt={category.name} className="w-full h-full object-cover" />
+                <img src={getMediaUrl(category.image)} alt={category.name} className="w-full h-full object-cover" />
               ) : (
                 <>
                   <Package className="h-8 w-8 mb-2 opacity-50" />
@@ -486,35 +512,121 @@ export default function CategoryDetailsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-700">Status</label>
-                  <select
-                    value={editingSubcategory.status}
-                    onChange={(e) => setEditingSubcategory({ ...editingSubcategory, status: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 bg-white font-medium"
-                  >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-700">Image URL</label>
-                  <input
-                    type="text"
-                    value={editingSubcategory.image || ""}
-                    onChange={(e) => setEditingSubcategory({ ...editingSubcategory, image: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500"
-                    placeholder="https://..."
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Status</label>
+                <select
+                  value={editingSubcategory.status}
+                  onChange={(e) => setEditingSubcategory({ ...editingSubcategory, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 bg-white font-medium"
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
               </div>
+
+              <ImageUploadInput
+                label="Subcategory Image"
+                value={editingSubcategory.image || ""}
+                onChange={(img: string) => setEditingSubcategory({ ...editingSubcategory, image: img })}
+                compact={true}
+              />
 
               <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setEditingSubcategory(null)}
+                  className="px-4 py-2 border border-gray-200 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold rounded-xl text-xs hover:from-gold-600 hover:to-gold-700 transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                >
+                  {isSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Category Modal */}
+      {editingCategory && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl max-w-lg w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Edit Category</h3>
+                <p className="text-xs text-gray-500">Update category details and status</p>
+              </div>
+              <button 
+                onClick={() => setEditingCategory(null)} 
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateCategory} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Category Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editingCategory.name || ""}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">URL Slug</label>
+                <input
+                  type="text"
+                  required
+                  value={editingCategory.slug || ""}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, slug: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-gold-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Description</label>
+                <textarea
+                  rows={3}
+                  value={editingCategory.description || ""}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+                  placeholder="Enter category description..."
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-700">Status</label>
+                <select
+                  value={editingCategory.status || "ACTIVE"}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 bg-white font-medium"
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </div>
+
+              <ImageUploadInput
+                label="Category Image"
+                value={editingCategory.image || ""}
+                onChange={(img: string) => setEditingCategory({ ...editingCategory, image: img })}
+                compact={true}
+              />
+
+              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingCategory(null)}
                   className="px-4 py-2 border border-gray-200 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Cancel

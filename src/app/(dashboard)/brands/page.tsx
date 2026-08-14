@@ -14,10 +14,12 @@ import {
   CheckCircle, 
   XCircle, 
   Loader2, 
-  ExternalLink,
-  X,
-  Building
+  ExternalLink, 
+  X, 
+  Building 
 } from "lucide-react";
+import ImageUploadInput from "@/components/ImageUploadInput";
+import { getMediaUrl } from "@/lib/media";
 
 export default function BrandsPage() {
   const router = useRouter();
@@ -278,7 +280,7 @@ export default function BrandsPage() {
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-gold-300 transition-colors">
                           {brand.logo ? (
-                            <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain p-1" />
+                            <img src={getMediaUrl(brand.logo)} alt={brand.name} className="h-full w-full object-contain p-1" />
                           ) : (
                             <Building className="h-5 w-5 text-gray-400" />
                           )}
@@ -365,8 +367,8 @@ export default function BrandsPage() {
             total={pagination.total}
             totalPages={pagination.totalPages}
             itemLabel="brands"
-            onPageChange={(newPage) => setPagination((prev) => ({ ...prev, page: newPage }))}
-            onLimitChange={(newLimit) => setPagination((prev) => ({ ...prev, limit: newLimit, page: 1 }))}
+            onPageChange={(newPage: number) => setPagination((prev) => ({ ...prev, page: newPage }))}
+            onLimitChange={(newLimit: number) => setPagination((prev) => ({ ...prev, limit: newLimit, page: 1 }))}
           />
         )}
       </div>
@@ -413,16 +415,14 @@ export default function BrandsPage() {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Logo Image URL</label>
-                <input
-                  type="url"
-                  value={newBrand.logo}
-                  onChange={(e) => setNewBrand({ ...newBrand, logo: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500"
-                />
-              </div>
+              <ImageUploadInput
+                label="Brand Logo"
+                value={newBrand.logo}
+                onChange={(img: string) => setNewBrand({ ...newBrand, logo: img })}
+                compact={true}
+                aspectRatio="square"
+                helperText="PNG, JPG, WebP logo or URL"
+              />
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700">Website</label>
@@ -509,16 +509,14 @@ export default function BrandsPage() {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Logo Image URL</label>
-                <input
-                  type="url"
-                  value={editingBrand.logo || ""}
-                  onChange={(e) => setEditingBrand({ ...editingBrand, logo: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500"
-                />
-              </div>
+              <ImageUploadInput
+                label="Brand Logo"
+                value={editingBrand.logo || ""}
+                onChange={(img: string) => setEditingBrand({ ...editingBrand, logo: img })}
+                compact={true}
+                aspectRatio="square"
+                helperText="PNG, JPG, WebP logo or URL"
+              />
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-700">Website</label>
