@@ -18,6 +18,23 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sculpt & Shine Admin",
   description: "Admin Panel for Sculpt & Shine E-commerce",
+  openGraph: {
+    title: "Sculpt & Shine Admin",
+    description: "Admin Control Center for Sculpt & Shine E-commerce",
+    images: ["/og-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sculpt & Shine Admin",
+    description: "Admin Control Center for Sculpt & Shine E-commerce",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
