@@ -25,8 +25,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Headset,
-  Star
+  Star,
+  Smartphone,
+  TicketPercent
 } from "lucide-react";
+import NotificationDropdown from "@/components/layout/NotificationDropdown";
+import MaintenanceAlertBanner from "@/components/common/MaintenanceAlertBanner";
 import { removeTokens, getToken } from "@/lib/auth";
 import { api } from "@/lib/api";
 
@@ -44,6 +48,7 @@ const sidebarNavigation = [
       { name: "Product Category", href: "/product-category", icon: Grid },
       { name: "Brands Management", href: "/brands", icon: Tag },
       { name: "Product Management", href: "/products", icon: Package },
+      { name: "Coupons & Vouchers", href: "/coupons", icon: TicketPercent },
       { name: "Orders Management", href: "/orders", icon: LayoutDashboard },
       { 
         name: "Support & Complaints", 
@@ -69,8 +74,16 @@ const sidebarNavigation = [
   {
     section: "SETTINGS",
     links: [
-      { name: "Settings", href: "/settings", icon: Settings },
-      { name: "Shipping", href: "/shipping", icon: Package },
+      { 
+        name: "Settings", 
+        icon: Settings,
+        subLinks: [
+          { name: "General Settings", href: "/settings" },
+          { name: "Shipping", href: "/shipping" },
+          { name: "WhatsApp Engine", href: "/whatsapp" },
+          { name: "Email Engine", href: "/email-engine" }
+        ]
+      },
     ],
   },
 ];
@@ -336,7 +349,62 @@ export default function DashboardLayout({
               )}
               <ul role="list" className="-mx-2 space-y-1">
                 {sidebarNavigation.filter((n: any) => n.section === "SETTINGS")[0]?.links.map((item: any) => {
-                  const isActive = pathname === item.href;
+                  const isActive = pathname === item.href || (item.subLinks && item.subLinks.some((sub: any) => pathname.startsWith(sub.href)));
+                  const isDropdownOpen = openDropdowns[item.name];
+
+                  if (item.subLinks) {
+                    return (
+                      <li key={item.name}>
+                        <button
+                          onClick={() => {
+                            if (isCollapsed) setIsCollapsed(false);
+                            toggleDropdown(item.name);
+                          }}
+                          className={`w-full group flex items-center justify-between rounded-xl text-sm leading-6 font-semibold transition-all duration-200 ${
+                            isCollapsed ? "justify-center p-3" : "gap-x-3 p-2.5"
+                          } ${
+                            isActive
+                              ? "bg-gradient-to-r from-gold-400 to-gold-500 text-white shadow-md shadow-gold-500/20"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <item.icon
+                              className={`h-5 w-5 shrink-0 transition-colors ${
+                                isActive ? "text-white" : "text-gray-400 group-hover:text-gray-600"
+                              }`}
+                              aria-hidden="true"
+                            />
+                            {!isCollapsed && <span>{item.name}</span>}
+                          </div>
+                          {!isCollapsed && (
+                            <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''} ${isActive ? "text-white" : "text-gray-400"}`} />
+                          )}
+                        </button>
+                        {!isCollapsed && isDropdownOpen && (
+                          <ul className="mt-1 space-y-1 pl-10 pr-2">
+                            {item.subLinks.map((sub: any) => {
+                              const isSubActive = pathname === sub.href;
+                              return (
+                                <li key={sub.name}>
+                                  <Link
+                                    href={sub.href}
+                                    onClick={() => setSidebarOpen(false)}
+                                    className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                                      isSubActive ? "bg-gold-50 text-gold-700 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                                    }`}
+                                  >
+                                    {sub.name}
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </li>
+                    );
+                  }
+
                   return (
                     <li key={item.name}>
                       <Link
@@ -373,6 +441,7 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0 overflow-y-auto">
+        <MaintenanceAlertBanner />
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-100 bg-white px-4 sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
@@ -402,12 +471,8 @@ export default function DashboardLayout({
 
             <div className="flex items-center gap-x-4 lg:gap-x-6">
 
-              {/* Notification Bell */}
-              <button type="button" className="relative -m-2.5 p-2.5 text-gray-500 hover:text-gray-900 bg-gray-50 rounded-full border border-gray-200 transition-colors">
-                <span className="sr-only">View notifications</span>
-                <Bell className="h-5 w-5" aria-hidden="true" />
-                <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
-              </button>
+              {/* Notification Dropdown */}
+              <NotificationDropdown />
 
               {/* Separator */}
               <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />

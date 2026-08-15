@@ -23,18 +23,22 @@ export default function MaintenanceGuard() {
     nextRetrySeconds 
   } = useHealth();
 
-  if (!isMaintenance && !isOffline) {
+  const envAdminMaintenance =
+    process.env.NEXT_PUBLIC_ADMIN_MAINTENANCE_MODE === 'true' ||
+    process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+
+  if (!isMaintenance && !isOffline && !envAdminMaintenance) {
     return null;
   }
 
-  const isScheduled = isMaintenance;
+  const isScheduled = isMaintenance || envAdminMaintenance;
   const title = isScheduled 
     ? "Admin Control • System Maintenance Active" 
     : "Admin Control • Backend Server Offline";
 
   const message = healthData?.maintenanceMessage || (
     isScheduled
-      ? "Maintenance mode is enabled across the backend and customer portal. API operations are paused for upgrades."
+      ? "Maintenance mode is enabled for the Admin Console via environment configuration. All dashboard routes are paused for maintenance."
       : "Cannot establish a connection to the backend API server on port 5000. Please ensure the backend service is running or check server logs."
   );
 

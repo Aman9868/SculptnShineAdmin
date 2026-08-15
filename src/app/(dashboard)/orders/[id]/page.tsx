@@ -4,7 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { orderAPI } from '@/lib/api/order';
 import { api } from '@/lib/api';
-import { ArrowLeft, Package, Truck, User, MapPin, Calendar, Clock, CreditCard, Save, FileText, Activity, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Package, Truck, User, MapPin, Calendar, Clock, CreditCard, Save, FileText, Activity, ShoppingBag, Tag } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -175,24 +175,67 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               ))}
             </div>
             
-            <div className="mt-6 pt-6 border-t border-gray-100 space-y-3 text-sm">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span>₹{order.totalAmount.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Discount</span>
-                <span>-</span>
-              </div>
-              <div className="flex justify-between items-center text-lg font-bold text-gray-900 pt-3 mt-3 border-t border-gray-100">
-                <span>Total Amount</span>
-                <span className="text-orange-600">₹{order.totalAmount.toLocaleString('en-IN')}</span>
-              </div>
-            </div>
+            {(() => {
+              let totalTaxable = 0;
+              let totalCgst = 0;
+              let totalSgst = 0;
+              let itemsGrossTotal = 0;
+
+              order.items.forEach((item: any) => {
+                const effectivePrice = item.unitPrice * (1 - (item.discountPercentage || 0) / 100);
+                const lineTotal = effectivePrice * item.quantity;
+                itemsGrossTotal += lineTotal;
+                const gstRate = item.gst || item.product?.gst || 18;
+                const taxable = lineTotal / (1 + gstRate / 100);
+                const gstAmt = lineTotal - taxable;
+                totalTaxable += taxable;
+                totalCgst += gstAmt / 2;
+                totalSgst += gstAmt / 2;
+              });
+
+              const couponDiscount = order.couponDiscount || (order as any).discountAmount || 0;
+              const shipping = order.shippingAmount || 0;
+
+              return (
+                <div className="mt-6 pt-6 border-t border-gray-100 space-y-2.5 text-xs">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Taxable Amount</span>
+                    <span className="font-semibold text-gray-900">₹{totalTaxable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>CGST (Central GST)</span>
+                    <span className="font-semibold text-gray-900">₹{totalCgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>SGST (State GST)</span>
+                    <span className="font-semibold text-gray-900">₹{totalSgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping Charges</span>
+                    <span className="font-semibold text-gray-900">{shipping === 0 ? 'FREE' : `₹${shipping.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</span>
+                  </div>
+                  {couponDiscount > 0 ? (
+                    <div className="flex justify-between text-amber-800 font-bold bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+                      <span className="flex items-center gap-1.5">
+                        <Tag size={13} className="text-amber-600" />
+                        Coupon Discount {order.couponCode ? `(${order.couponCode})` : ''}
+                      </span>
+                      <span>-₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-gray-500">
+                      <span>Discount</span>
+                      <span>- ₹0.00</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-base font-black text-gray-900 pt-3 mt-3 border-t border-gray-100">
+                    <span>Total Amount</span>
+                    <span className="text-amber-700 text-lg">₹{order.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 text-right italic">(Inclusive of all applicable GST)</p>
+                </div>
+              );
+            })()}
           </div>
           
           {/* Customer & Shipping Info */}
@@ -204,7 +247,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               <div className="space-y-4 text-sm">
                 <div>
                   <p className="text-gray-500 mb-1">Name</p>
-                  <p className="font-medium text-gray-900">{order.userProfile?.user?.firstName} {order.userProfile?.user?.lastName}</p>
+                  <p className="font-medium text-gray-900">{order.userProfile?.user?.firstName} {order.userProfile?.user?.lastName || ''}</p>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Email</p>
@@ -212,7 +255,9 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Phone</p>
-                  <p className="font-medium text-gray-900">{order.shippingPhone}</p>
+                  <p className="font-medium text-gray-900">
+                    {order.shippingPhone || order.userProfile?.phone || order.userProfile?.user?.phone || 'Not Provided'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -221,14 +266,11 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
               <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <MapPin size={18} className="text-orange-500" /> Shipping Address
               </h3>
-              <div className="space-y-4 text-sm text-gray-900 font-medium">
-                <div>
-                  <p>{order.shippingName}</p>
-                  <p>{order.shippingAddress}</p>
-                  <p>{order.shippingCity}, {order.shippingState} {order.shippingPincode}</p>
-                  <p className="text-gray-500 font-normal">India</p>
-                </div>
-                <p className="text-gray-500 font-normal">Phone: <span className="text-gray-900 font-medium">{order.shippingPhone}</span></p>
+              <div className="space-y-2 text-sm text-gray-900 font-medium">
+                <p className="font-bold text-gray-900">{order.shippingName || `${order.userProfile?.user?.firstName || ''} ${order.userProfile?.user?.lastName || ''}`.trim()}</p>
+                <p className="text-gray-600">{order.shippingAddress}</p>
+                <p className="text-gray-600">{order.shippingCity}, {order.shippingState} - {order.shippingPincode}</p>
+                <p className="text-gray-500 font-normal text-xs">India</p>
               </div>
             </div>
           </div>
