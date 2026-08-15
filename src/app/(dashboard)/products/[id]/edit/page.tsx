@@ -132,18 +132,26 @@ export default function EditProductPage() {
       setVariants(existingVariants);
       setHasVariants(existingVariants.length > 0);
 
-      // Populate flavor/weight initial tags
-      const flavors = Array.from(new Set(existingVariants.map((v) => v.flavor).filter(Boolean)));
-      const weights = Array.from(new Set(existingVariants.map((v) => v.weight).filter(Boolean)));
-      setFlavorInput(flavors.join(", "));
-      setWeightInput(weights.join(", "));
+      const brandName = typeof product.brand === 'object' && product.brand !== null
+        ? (product.brand.name || "")
+        : typeof product.brand === 'string'
+        ? product.brand
+        : (product.productBrand?.name || "");
+
+      const brandId = product.brandId || (typeof product.brand === 'object' && product.brand !== null ? product.brand.id : "");
+
+      // Check if product brand matches any existing list or is custom
+      const isKnownBrand = brandsList.some(b => b.id === brandId || b.name?.toLowerCase() === brandName.toLowerCase());
+      if (brandName && !isKnownBrand) {
+        setIsCustomBrand(true);
+      }
 
       setFormData({
         title: product.title || "",
         slug: product.slug || "",
         sku: product.sku || "",
-        brand: product.brand || (product.productBrand?.name || ""),
-        brandId: product.brandId || "",
+        brand: brandName,
+        brandId: brandId,
         preference: product.preference || "NOT_APPLICABLE",
         unitPrice: product.unitPrice ? product.unitPrice.toString() : "",
         discountPercentage: product.discountPercentage !== undefined ? product.discountPercentage.toString() : "0",
@@ -353,6 +361,7 @@ export default function EditProductPage() {
         slug: formData.slug,
         sku: formData.sku,
         brand: formData.brand || undefined,
+        brandId: formData.brandId || undefined,
         preference: formData.preference || "NOT_APPLICABLE",
         unitPrice: parseFloat(formData.unitPrice),
         discountPercentage: formData.discountPercentage ? parseFloat(formData.discountPercentage) : 0,
@@ -529,14 +538,22 @@ export default function EditProductPage() {
                   ) : (
                     <div className="flex gap-2">
                       <select
-                        name="brand"
-                        value={formData.brand}
-                        onChange={handleChange}
+                        name="brandId"
+                        value={formData.brandId || (brandsList.find(b => b.name?.toLowerCase() === formData.brand?.toLowerCase())?.id) || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const selected = brandsList.find((b) => b.id === val);
+                          setFormData((prev) => ({
+                            ...prev,
+                            brandId: val,
+                            brand: selected ? selected.name : "",
+                          }));
+                        }}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
                       >
                         <option value="">Select Brand</option>
                         {brandsList.map((b) => (
-                          <option key={b.id} value={b.name}>{b.name}</option>
+                          <option key={b.id} value={b.id}>{b.name}</option>
                         ))}
                       </select>
                       <button

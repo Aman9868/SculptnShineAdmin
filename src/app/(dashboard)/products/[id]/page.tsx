@@ -599,6 +599,17 @@ export default function ProductDetailsPage() {
             <div className="space-y-4 pt-2 border-t border-gray-100">
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
+                  <Package className="h-3.5 w-3.5" /> Brand
+                </p>
+                <p className="text-sm font-bold text-gray-900">
+                  {typeof product.brand === "object" && product.brand !== null
+                    ? product.brand.name
+                    : product.brand || (product as any).productBrand?.name || "Unbranded / Custom"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
                   <Tag className="h-3.5 w-3.5" /> Category
                 </p>
                 <p className="text-sm font-bold text-gray-900">
