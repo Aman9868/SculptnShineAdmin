@@ -563,11 +563,15 @@ export default function DashboardHome() {
                       >
                         <td className="px-2 py-3.5 flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
-                            {prod.images?.[0] ? (
-                              <img src={prod.images[0]} alt={title} className="w-full h-full object-cover" />
-                            ) : (
-                              <Package className="w-5 h-5 text-gray-400" />
-                            )}
+                            <img 
+                              src={prod.images?.[0] || '/assets/product-placeholder.png'} 
+                              alt={title} 
+                              onError={(e: any) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = '/assets/product-placeholder.png';
+                              }}
+                              className="w-full h-full object-cover" 
+                            />
                           </div>
                           <span className="font-semibold text-gray-800 line-clamp-1 max-w-[140px]">{title}</span>
                         </td>

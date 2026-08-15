@@ -425,11 +425,15 @@ export default function ProductsPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
-                          {p.images && p.images.length > 0 ? (
-                            <img src={p.images[0]} alt={p.title} className="h-full w-full object-cover" />
-                          ) : (
-                            <Package className="h-5 w-5 text-gray-400" />
-                          )}
+                          <img 
+                            src={p.images && p.images.length > 0 && p.images[0] ? p.images[0] : '/assets/product-placeholder.png'} 
+                            alt={p.title} 
+                            onError={(e: any) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = '/assets/product-placeholder.png';
+                            }}
+                            className="h-full w-full object-cover" 
+                          />
                         </div>
                         <div>
                           <p className="font-bold text-gray-900 group-hover:text-gold-600 transition-colors">
