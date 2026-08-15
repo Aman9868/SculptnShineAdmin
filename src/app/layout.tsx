@@ -16,17 +16,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sculpt & Shine Admin",
-  description: "Admin Panel for Sculpt & Shine E-commerce",
+  title: "Sculpt N Shine Admin",
+  description: "Admin Panel for Sculpt N Shine E-commerce",
   openGraph: {
-    title: "Sculpt & Shine Admin",
-    description: "Admin Control Center for Sculpt & Shine E-commerce",
+    title: "Sculpt N Shine Admin",
+    description: "Admin Control Center for Sculpt N Shine E-commerce",
     images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sculpt & Shine Admin",
-    description: "Admin Control Center for Sculpt & Shine E-commerce",
+    title: "Sculpt N Shine Admin",
+    description: "Admin Control Center for Sculpt N Shine E-commerce",
     images: ["/og-image.png"],
   },
   icons: {
