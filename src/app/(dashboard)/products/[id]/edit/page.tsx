@@ -4,10 +4,23 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { useToast } from "@/context/ToastContext";
-import { ArrowLeft, Loader2, UploadCloud, Plus, X, Film, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Loader2, UploadCloud, Plus, X, Film, Image as ImageIcon, Trash2, Sparkles, Layers, Tag, Calendar, Package } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "@/components/RichTextEditor";
 import { getMediaUrl } from "@/lib/media";
+
+interface VariantItem {
+  id?: string;
+  title: string;
+  sku: string;
+  flavor: string;
+  weight: string;
+  unitPrice: string;
+  discountPercentage: string;
+  gst: string;
+  expiryDate: string;
+  stock: string;
+}
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -49,19 +62,12 @@ export default function EditProductPage() {
   const [isUploading, setIsUploading] = useState(false);
 
   // Product Variants state
-  const [hasVariants, setHasVariants] = useState(true);
+  const [hasVariants, setHasVariants] = useState(false);
+  const [attr1Name, setAttr1Name] = useState("Flavor");
+  const [attr2Name, setAttr2Name] = useState("Weight / Size");
   const [flavorInput, setFlavorInput] = useState("");
   const [weightInput, setWeightInput] = useState("");
-  const [variants, setVariants] = useState<Array<{
-    title: string;
-    sku: string;
-    flavor: string;
-    weight: string;
-    unitPrice: string;
-    discountPercentage: string;
-    gst: string;
-    stock: string;
-  }>>([]);
+  const [variants, setVariants] = useState<VariantItem[]>([]);
 
   useEffect(() => {
     fetchProductAndMetadata();
@@ -74,6 +80,28 @@ export default function EditProductPage() {
       setSubcategories([]);
     }
   }, [formData.categoryId]);
+
+  // Auto-sync base price and total stock when variants are present
+  useEffect(() => {
+    if (hasVariants && variants.length > 0) {
+      const validPrices = variants.map((v) => parseFloat(v.unitPrice)).filter((p) => !isNaN(p) && p > 0);
+      if (validPrices.length > 0) {
+        const minPrice = Math.min(...validPrices);
+        setFormData((prev) => ({ ...prev, unitPrice: minPrice.toString() }));
+      }
+      const totalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+      setFormData((prev) => ({ ...prev, stock: totalStock.toString() }));
+
+      // Find earliest active expiry
+      const activeExpiries = variants
+        .filter((v) => v.expiryDate && (parseInt(v.stock) || 0) > 0)
+        .map((v) => new Date(v.expiryDate).getTime());
+      if (activeExpiries.length > 0) {
+        const earliest = new Date(Math.min(...activeExpiries)).toISOString().split('T')[0];
+        setFormData((prev) => ({ ...prev, expiryDate: earliest }));
+      }
+    }
+  }, [variants, hasVariants]);
 
   const fetchProductAndMetadata = async () => {
     try {
@@ -88,19 +116,27 @@ export default function EditProductPage() {
       setCategories(catRes.data.data.categories || []);
       setBrandsList(brandRes.data.data.brands || []);
 
-      const existingVariants = (product.variants || []).map((v: any) => ({
+      const existingVariants: VariantItem[] = (product.variants || []).map((v: any) => ({
+        id: v.id,
         title: v.title || "",
         sku: v.sku || "",
         flavor: v.flavor || "",
         weight: v.weight || "",
         unitPrice: v.unitPrice ? v.unitPrice.toString() : "",
-        discountPercentage: v.discountPercentage ? v.discountPercentage.toString() : "0",
-        gst: v.gst ? v.gst.toString() : "18",
-        stock: v.stock ? v.stock.toString() : "0",
+        discountPercentage: v.discountPercentage !== undefined ? v.discountPercentage.toString() : "0",
+        gst: v.gst !== undefined ? v.gst.toString() : "18",
+        expiryDate: v.expiryDate ? new Date(v.expiryDate).toISOString().split('T')[0] : "",
+        stock: v.stock !== undefined ? v.stock.toString() : "0",
       }));
 
       setVariants(existingVariants);
       setHasVariants(existingVariants.length > 0);
+
+      // Populate flavor/weight initial tags
+      const flavors = Array.from(new Set(existingVariants.map((v) => v.flavor).filter(Boolean)));
+      const weights = Array.from(new Set(existingVariants.map((v) => v.weight).filter(Boolean)));
+      setFlavorInput(flavors.join(", "));
+      setWeightInput(weights.join(", "));
 
       setFormData({
         title: product.title || "",
@@ -110,11 +146,11 @@ export default function EditProductPage() {
         brandId: product.brandId || "",
         preference: product.preference || "NOT_APPLICABLE",
         unitPrice: product.unitPrice ? product.unitPrice.toString() : "",
-        discountPercentage: product.discountPercentage ? product.discountPercentage.toString() : "0",
-        gst: product.gst ? product.gst.toString() : "18",
+        discountPercentage: product.discountPercentage !== undefined ? product.discountPercentage.toString() : "0",
+        gst: product.gst !== undefined ? product.gst.toString() : "18",
         expiryDate: product.expiryDate ? new Date(product.expiryDate).toISOString().split('T')[0] : "",
-        stock: product.stock ? product.stock.toString() : "0",
-        lowStockAlert: product.lowStockAlert ? product.lowStockAlert.toString() : "5",
+        stock: product.stock !== undefined ? product.stock.toString() : "0",
+        lowStockAlert: product.lowStockAlert !== undefined ? product.lowStockAlert.toString() : "5",
         categoryId: product.categoryId || "",
         subcategoryId: product.subcategoryId || "",
         description: product.description || "",
@@ -130,111 +166,139 @@ export default function EditProductPage() {
   };
 
   const autoGenerateVariants = () => {
-    const flavors = flavorInput.split(",").map((f) => f.trim()).filter(Boolean);
-    const weights = weightInput.split(",").map((w) => w.trim()).filter(Boolean);
+    const list1 = flavorInput.split(",").map((f) => f.trim()).filter(Boolean);
+    const list2 = weightInput.split(",").map((w) => w.trim()).filter(Boolean);
 
-    if (flavors.length === 0 && weights.length === 0) return;
+    if (list1.length === 0 && list2.length === 0) return;
 
     const basePrice = formData.unitPrice || "1000";
     const baseDiscount = formData.discountPercentage || "0";
     const baseGst = formData.gst || "18";
-    const baseStock = formData.stock || "10";
+    const baseStock = "5";
     const baseSku = formData.sku || "SKU-PROD";
+    const baseExpiry = formData.expiryDate || "";
 
-    const newVariants: Array<{
-      title: string;
-      sku: string;
-      flavor: string;
-      weight: string;
-      unitPrice: string;
-      discountPercentage: string;
-      gst: string;
-      stock: string;
-    }> = [];
+    const newVariants: VariantItem[] = [];
 
-    const fList = flavors.length > 0 ? flavors : ["Default"];
-    const wList = weights.length > 0 ? weights : ["Default"];
-
-    fList.forEach((f, fIdx) => {
-      wList.forEach((w, wIdx) => {
-        const titleParts = [];
-        if (f !== "Default") titleParts.push(f);
-        if (w !== "Default") titleParts.push(w);
-        const title = titleParts.join(" / ") || "Standard Variant";
-
-        const skuClean = `${baseSku}-${f !== "Default" ? f.substring(0, 3).toUpperCase() : ""}${w !== "Default" ? w.replace(/[^a-zA-Z0-9]/g, "").toUpperCase() : ""}-${fIdx}${wIdx}`;
-
+    if (list1.length > 0 && list2.length > 0) {
+      list1.forEach((f1) => {
+        list2.forEach((f2) => {
+          newVariants.push({
+            title: `${f1} / ${f2}`,
+            sku: `${baseSku}-${f1.substring(0, 3).toUpperCase()}-${f2.replace(/[^a-zA-Z0-9]/g, '')}`,
+            flavor: f1,
+            weight: f2,
+            unitPrice: basePrice,
+            discountPercentage: baseDiscount,
+            gst: baseGst,
+            expiryDate: baseExpiry,
+            stock: baseStock,
+          });
+        });
+      });
+    } else if (list1.length > 0) {
+      list1.forEach((f1) => {
         newVariants.push({
-          title,
-          sku: skuClean,
-          flavor: f !== "Default" ? f : "",
-          weight: w !== "Default" ? w : "",
+          title: f1,
+          sku: `${baseSku}-${f1.substring(0, 3).toUpperCase()}`,
+          flavor: f1,
+          weight: "",
           unitPrice: basePrice,
           discountPercentage: baseDiscount,
           gst: baseGst,
+          expiryDate: baseExpiry,
           stock: baseStock,
         });
       });
-    });
+    } else if (list2.length > 0) {
+      list2.forEach((f2) => {
+        newVariants.push({
+          title: f2,
+          sku: `${baseSku}-${f2.replace(/[^a-zA-Z0-9]/g, '')}`,
+          flavor: "",
+          weight: f2,
+          unitPrice: basePrice,
+          discountPercentage: baseDiscount,
+          gst: baseGst,
+          expiryDate: baseExpiry,
+          stock: baseStock,
+        });
+      });
+    }
 
     setVariants(newVariants);
   };
 
   const addCustomVariant = () => {
-    setVariants((prev) => [
-      ...prev,
+    const basePrice = formData.unitPrice || "1000";
+    const baseDiscount = formData.discountPercentage || "0";
+    const baseGst = formData.gst || "18";
+    const baseStock = "5";
+    const baseSku = formData.sku || "SKU-PROD";
+    const baseExpiry = formData.expiryDate || "";
+
+    setVariants([
+      ...variants,
       {
-        title: "New Variant",
-        sku: `${formData.sku || "SKU"}-VAR-${prev.length + 1}`,
+        title: `Custom Variant ${variants.length + 1}`,
+        sku: `${baseSku}-V${variants.length + 1}`,
         flavor: "",
         weight: "",
-        unitPrice: formData.unitPrice || "1000",
-        discountPercentage: formData.discountPercentage || "0",
-        gst: formData.gst || "18",
-        stock: "10",
+        unitPrice: basePrice,
+        discountPercentage: baseDiscount,
+        gst: baseGst,
+        expiryDate: baseExpiry,
+        stock: baseStock,
       },
     ]);
   };
 
   const updateVariant = (index: number, field: string, value: string) => {
-    setVariants((prev) =>
-      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v))
-    );
+    const updated = [...variants];
+    updated[index] = { ...updated[index], [field]: value };
+
+    if (field === "flavor" || field === "weight") {
+      const f1 = updated[index].flavor;
+      const f2 = updated[index].weight;
+      updated[index].title = f1 && f2 ? `${f1} / ${f2}` : f1 || f2 || "Variant";
+    }
+
+    setVariants(updated);
   };
 
   const removeVariantRow = (index: number) => {
-    setVariants((prev) => prev.filter((_, i) => i !== index));
+    setVariants(variants.filter((_, i) => i !== index));
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setIsUploading(true);
+    const fileFormData = new FormData();
+    fileFormData.append("file", file);
+
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileFormData = new FormData();
-        fileFormData.append("file", file);
+      setIsUploading(true);
+      const isVideo = file.type.startsWith("video/");
+      const endpoint = isVideo ? "/uploads/video" : "/uploads/image";
 
-        const res = await api.post("/upload", fileFormData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        const fileUrl = res.data.url;
-        const isVideo = res.data.type === "video" || file.type.startsWith("video/");
+      const res = await api.post(endpoint, fileFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-        if (isVideo) {
-          setFormData((prev) => ({ ...prev, videos: [...prev.videos, fileUrl] }));
-        } else {
-          setFormData((prev) => ({ ...prev, images: [...prev.images, fileUrl] }));
-        }
+      const uploadedUrl = res.data.data.url;
+
+      if (isVideo) {
+        setFormData((prev) => ({ ...prev, videos: [...prev.videos, uploadedUrl] }));
+        showToast("Video uploaded successfully", "success");
+      } else {
+        setFormData((prev) => ({ ...prev, images: [...prev.images, uploadedUrl] }));
+        showToast("Image uploaded successfully", "success");
       }
-      showToast("Media uploaded successfully!", "success");
     } catch (err: any) {
       showToast(err.response?.data?.message || "Failed to upload file", "error");
     } finally {
       setIsUploading(false);
-      e.target.value = "";
     }
   };
 
@@ -302,6 +366,18 @@ export default function EditProductPage() {
         status: formData.status,
         images: formData.images,
         videos: formData.videos,
+        variants: hasVariants ? variants.map((v) => ({
+          id: v.id || undefined,
+          title: v.title,
+          sku: v.sku,
+          flavor: v.flavor || null,
+          weight: v.weight || null,
+          unitPrice: parseFloat(v.unitPrice) || parseFloat(formData.unitPrice),
+          discountPercentage: v.discountPercentage ? parseFloat(v.discountPercentage) : 0,
+          gst: v.gst ? parseFloat(v.gst) : 18,
+          expiryDate: v.expiryDate ? new Date(v.expiryDate).toISOString() : (formData.expiryDate ? new Date(formData.expiryDate).toISOString() : undefined),
+          stock: parseInt(v.stock) || 0,
+        })) : [],
       };
 
       await api.patch(`/products/${productId}`, payload);
@@ -338,7 +414,7 @@ export default function EditProductPage() {
           </div>
           <h1 className="text-3xl font-extrabold text-brandDark font-serif-luxury tracking-tight">Edit Product</h1>
           <p className="mt-1 text-sm font-medium text-gray-500">
-            Update pricing, stock levels, or product details.
+            Update pricing, variants, batch expiry dates, stock levels, or product details.
           </p>
         </div>
       </div>
@@ -350,11 +426,12 @@ export default function EditProductPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column: Product Information */}
+            
+            {/* Left 2 Columns: Main Fields */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Product Title */}
+              {/* Title */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Product Title <span className="text-red-500">*</span></label>
                 <input
@@ -363,38 +440,37 @@ export default function EditProductPage() {
                   required
                   value={formData.title}
                   onChange={handleChange}
+                  placeholder="e.g., ISO Gold Whey Protein"
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
                 />
               </div>
 
-              {/* Slug & SKU Grid */}
+              {/* Slug & SKU Code */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Slug</label>
                   <input
                     type="text"
                     name="slug"
-                    required
                     value={formData.slug}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-mono"
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">SKU Code</label>
+                  <label className="text-sm font-semibold text-gray-700">SKU Code <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="sku"
                     required
                     value={formData.sku}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-mono"
                   />
                 </div>
               </div>
 
-              {/* Category & Subcategory Grid */}
+              {/* Categories Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Category</label>
@@ -402,13 +478,11 @@ export default function EditProductPage() {
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-medium text-gray-700"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
                   >
                     <option value="">Select Category</option>
                     {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
+                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
@@ -419,64 +493,58 @@ export default function EditProductPage() {
                     name="subcategoryId"
                     value={formData.subcategoryId}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-medium text-gray-700"
+                    disabled={!formData.categoryId}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all disabled:bg-gray-50 disabled:opacity-60"
                   >
                     <option value="">Select Subcategory</option>
                     {subcategories.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
+                      <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Brand & Dietary Preference Grid */}
+              {/* Brand & Dietary Preference */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Brand Name</label>
-                  {!isCustomBrand ? (
-                    <select
-                      value={formData.brandId || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "__CUSTOM__") {
-                          setIsCustomBrand(true);
-                          setFormData((prev) => ({ ...prev, brandId: "", brand: "" }));
-                        } else {
-                          const selected = brandsList.find((b) => b.id === val);
-                          setFormData((prev) => ({ ...prev, brandId: val, brand: selected ? selected.name : "" }));
-                        }
-                      }}
-                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-medium text-gray-700"
-                    >
-                      <option value="">Select Brand</option>
-                      {brandsList.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.name}
-                        </option>
-                      ))}
-                      <option value="__CUSTOM__">➕ Type custom brand (auto-creates brand entry)</option>
-                    </select>
-                  ) : (
+                  {isCustomBrand ? (
                     <div className="flex gap-2">
                       <input
                         type="text"
                         name="brand"
                         value={formData.brand}
                         onChange={handleChange}
-                        placeholder="Type custom brand name..."
-                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-medium text-gray-700"
+                        placeholder="Enter brand name"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
                       />
                       <button
                         type="button"
-                        onClick={() => {
-                          setIsCustomBrand(false);
-                          setFormData((prev) => ({ ...prev, brand: "", brandId: "" }));
-                        }}
-                        className="px-3 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-200"
+                        onClick={() => setIsCustomBrand(false)}
+                        className="px-3 py-1 text-xs border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 shrink-0"
                       >
-                        Cancel
+                        List
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <select
+                        name="brand"
+                        value={formData.brand}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
+                      >
+                        <option value="">Select Brand</option>
+                        {brandsList.map((b) => (
+                          <option key={b.id} value={b.name}>{b.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setIsCustomBrand(true)}
+                        className="px-3 py-1 text-xs border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 shrink-0"
+                      >
+                        Custom
                       </button>
                     </div>
                   )}
@@ -489,22 +557,25 @@ export default function EditProductPage() {
                     name="preference"
                     value={formData.preference}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-medium text-gray-700"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
                   >
                     <option value="NOT_APPLICABLE">Not Applicable (Cosmetics, Haircare, etc.)</option>
-                    <option value="VEGETARIAN">🌱 Vegetarian</option>
-                    <option value="NON_VEGETARIAN">🍗 Non-Vegetarian</option>
-                    <option value="EGGITARIAN">🥚 Eggitarian</option>
-                    <option value="VEGAN">🍃 Vegan</option>
+                    <option value="VEGETARIAN">Vegetarian 🟢</option>
+                    <option value="NON_VEGETARIAN">Non-Vegetarian 🔴</option>
+                    <option value="EGGITARIAN">Eggitarian 🟡</option>
+                    <option value="VEGAN">Vegan 🌱</option>
                   </select>
                   <p className="text-xs text-gray-500">Essential filter for supplements & health food</p>
                 </div>
               </div>
 
-              {/* Pricing Grid */}
+              {/* Base Pricing Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Unit Price (₹) <span className="text-red-500">*</span></label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Unit Price (₹) <span className="text-red-500">*</span>
+                    {hasVariants && <span className="text-[11px] font-normal text-amber-700 ml-1">(Auto-set to min variant price)</span>}
+                  </label>
                   <input
                     type="number"
                     step="0.01"
@@ -512,7 +583,7 @@ export default function EditProductPage() {
                     required
                     value={formData.unitPrice}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-semibold"
                   />
                 </div>
 
@@ -541,7 +612,10 @@ export default function EditProductPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Expiry Date</label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Expiry Date
+                    {hasVariants && <span className="text-[11px] font-normal text-amber-700 ml-1">(Earliest active batch expiry)</span>}
+                  </label>
                   <input
                     type="date"
                     name="expiryDate"
@@ -555,14 +629,18 @@ export default function EditProductPage() {
               {/* Stock Quantity Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Stock Quantity</label>
+                  <label className="text-sm font-semibold text-gray-700">
+                    Total Stock Quantity
+                    {hasVariants && <span className="text-[11px] font-normal text-amber-700 ml-1">(Sum of all variant stocks)</span>}
+                  </label>
                   <input
                     type="number"
                     name="stock"
                     required
                     value={formData.stock}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all"
+                    readOnly={hasVariants}
+                    className={`w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-bold ${hasVariants ? 'bg-amber-50/50 text-amber-900' : ''}`}
                   />
                 </div>
 
@@ -588,19 +666,17 @@ export default function EditProductPage() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, status: formData.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 ${formData.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-gray-200'
-                      }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 ${formData.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-gray-200'}`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.status === 'ACTIVE' ? 'translate-x-6' : 'translate-x-1'
-                        }`}
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.status === 'ACTIVE' ? 'translate-x-6' : 'translate-x-1'}`}
                     />
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Multiple Media Manager (Images & Videos) */}
+            {/* Right Column: Multiple Media Manager */}
             <div className="lg:col-span-1 space-y-6">
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1">Product Media (Images & Videos)</label>
@@ -723,6 +799,246 @@ export default function EditProductPage() {
             </div>
           </div>
 
+          {/* ========================================================================= */}
+          {/* PRODUCT VARIANTS & BATCH EXPIRY INVENTORY SECTION                        */}
+          {/* ========================================================================= */}
+          <div className="pt-8 border-t border-gray-100">
+            <div className="bg-gray-50/60 border border-gray-200/80 rounded-2xl p-5 sm:p-6 space-y-6">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                    <Layers className="h-5 w-5 text-gold-600" />
+                    <span>Product Variants & Batch Expiry Matrix</span>
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Manage multiple flavors, package weights, individual prices, batch expiry dates (FEFO), and stock levels.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-gray-700">Has Multiple Variants / Batches?</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextVal = !hasVariants;
+                      setHasVariants(nextVal);
+                      if (nextVal && variants.length === 0) {
+                        addCustomVariant();
+                      }
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                      hasVariants ? 'bg-gold-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        hasVariants ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {hasVariants && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  
+                  {/* Attribute Tags Generator */}
+                  <div className="p-4 bg-white border border-gray-200 rounded-xl space-y-4 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                        <Sparkles className="h-4 w-4 text-gold-600" />
+                        Quick Combinations Generator
+                      </span>
+                      <span className="text-[11px] text-gray-400">Separate values with commas</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={attr1Name}
+                            onChange={(e) => setAttr1Name(e.target.value)}
+                            placeholder="Attribute 1 Name"
+                            className="text-xs font-bold text-gray-700 bg-transparent border-b border-gray-200 px-1 py-0.5 outline-none focus:border-gold-500 w-28"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={flavorInput}
+                          onChange={(e) => setFlavorInput(e.target.value)}
+                          placeholder="e.g., Chocolate Charge, Vanilla Dream, Mango"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-gold-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={attr2Name}
+                            onChange={(e) => setAttr2Name(e.target.value)}
+                            placeholder="Attribute 2 Name"
+                            className="text-xs font-bold text-gray-700 bg-transparent border-b border-gray-200 px-1 py-0.5 outline-none focus:border-gold-500 w-28"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={weightInput}
+                          onChange={(e) => setWeightInput(e.target.value)}
+                          placeholder="e.g., 2.27 Kg / 5 LB, 1 Kg / 2.2 LB"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:ring-1 focus:ring-gold-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={autoGenerateVariants}
+                        className="px-4 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors"
+                      >
+                        Generate Combinations ({attr1Name} × {attr2Name})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={addCustomVariant}
+                        className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+                      >
+                        <Plus size={14} /> Add Single Variant / Batch Row
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Variants Matrix Table */}
+                  {variants.length > 0 && (
+                    <div className="overflow-x-auto border border-gray-200 rounded-xl shadow-xs bg-white">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-gray-50 border-b border-gray-200 text-gray-700 font-bold uppercase tracking-wider text-[10px]">
+                          <tr>
+                            <th className="py-2.5 px-3">Variant Title</th>
+                            <th className="py-2.5 px-3">SKU</th>
+                            <th className="py-2.5 px-3">{attr1Name}</th>
+                            <th className="py-2.5 px-3">{attr2Name}</th>
+                            <th className="py-2.5 px-3">Unit Price (₹)</th>
+                            <th className="py-2.5 px-3">Discount (%)</th>
+                            <th className="py-2.5 px-3">GST (%)</th>
+                            <th className="py-2.5 px-3">
+                              <span className="flex items-center gap-1 text-amber-800">
+                                <Calendar size={11} /> Expiry Date (FEFO)
+                              </span>
+                            </th>
+                            <th className="py-2.5 px-3">
+                              <span className="flex items-center gap-1 text-emerald-800">
+                                <Package size={11} /> Stock
+                              </span>
+                            </th>
+                            <th className="py-2.5 px-3 text-center">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 font-medium text-gray-800">
+                          {variants.map((v, idx) => (
+                            <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
+                              <td className="p-2 min-w-[130px]">
+                                <input
+                                  type="text"
+                                  value={v.title}
+                                  onChange={(e) => updateVariant(idx, "title", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-1 focus:ring-gold-500 font-bold"
+                                />
+                              </td>
+                              <td className="p-2 min-w-[120px]">
+                                <input
+                                  type="text"
+                                  value={v.sku}
+                                  onChange={(e) => updateVariant(idx, "sku", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-1 focus:ring-gold-500 font-mono"
+                                />
+                              </td>
+                              <td className="p-2 min-w-[100px]">
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Chocolate"
+                                  value={v.flavor}
+                                  onChange={(e) => updateVariant(idx, "flavor", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-1 focus:ring-gold-500"
+                                />
+                              </td>
+                              <td className="p-2 min-w-[90px]">
+                                <input
+                                  type="text"
+                                  placeholder="e.g. 2.27 Kg"
+                                  value={v.weight}
+                                  onChange={(e) => updateVariant(idx, "weight", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-1 focus:ring-gold-500"
+                                />
+                              </td>
+                              <td className="p-2 min-w-[90px]">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={v.unitPrice}
+                                  onChange={(e) => updateVariant(idx, "unitPrice", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-1 focus:ring-gold-500 font-bold text-gray-900"
+                                />
+                              </td>
+                              <td className="p-2 min-w-[80px]">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={v.discountPercentage}
+                                  onChange={(e) => updateVariant(idx, "discountPercentage", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-1 focus:ring-gold-500"
+                                />
+                              </td>
+                              <td className="p-2 min-w-[70px]">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={v.gst}
+                                  onChange={(e) => updateVariant(idx, "gst", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs outline-none focus:ring-1 focus:ring-gold-500"
+                                />
+                              </td>
+                              <td className="p-2 min-w-[130px]">
+                                <input
+                                  type="date"
+                                  value={v.expiryDate}
+                                  onChange={(e) => updateVariant(idx, "expiryDate", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-amber-200 bg-amber-50/40 rounded text-xs outline-none focus:ring-1 focus:ring-amber-500 font-semibold"
+                                />
+                              </td>
+                              <td className="p-2 min-w-[80px]">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={v.stock}
+                                  onChange={(e) => updateVariant(idx, "stock", e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-emerald-200 bg-emerald-50/40 rounded text-xs outline-none focus:ring-1 focus:ring-emerald-500 font-bold text-emerald-900"
+                                />
+                              </td>
+                              <td className="p-2 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => removeVariantRow(idx)}
+                                  className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                                  title="Delete Variant Row"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Full-Width Product Description Area */}
           <div className="mt-8 pt-6 border-t border-gray-100 space-y-3 w-full">
             <div className="flex items-center justify-between">
@@ -740,23 +1056,24 @@ export default function EditProductPage() {
             </div>
           </div>
 
+          {/* Form Actions */}
           <div className="flex items-center justify-end gap-3 pt-8 mt-6 border-t border-gray-100">
             <button
               type="button"
               onClick={() => router.push(`/products/${productId}`)}
-              className="px-5 py-2.5 border border-gray-200 text-gray-600 font-bold rounded-xl text-sm hover:bg-gray-50 transition-colors"
+              className="px-5 py-2.5 border border-gray-200 text-gray-600 font-bold rounded-xl text-sm hover:bg-gray-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md shadow-orange-500/20 transition-all text-sm disabled:opacity-70"
+              className="px-6 py-2.5 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-black font-extrabold rounded-xl text-sm shadow-md shadow-gold-500/20 hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
+                  Saving Changes...
                 </>
               ) : (
                 "Save Changes"
