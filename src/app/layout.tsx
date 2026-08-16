@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/context/ToastContext";
 import { HealthProvider } from "@/context/HealthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import MaintenanceGuard from "@/components/MaintenanceGuard";
 
 const geistSans = Geist({
@@ -48,12 +49,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <HealthProvider>
-          <MaintenanceGuard />
-          <ToastProvider>{children}</ToastProvider>
-        </HealthProvider>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('admin_theme_mode');
+                const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.setAttribute('data-theme', 'dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col transition-colors duration-200">
+        <ThemeProvider>
+          <HealthProvider>
+            <MaintenanceGuard />
+            <ToastProvider>{children}</ToastProvider>
+          </HealthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

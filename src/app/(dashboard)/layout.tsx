@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -26,13 +26,15 @@ import {
   PanelLeftOpen,
   Headset,
   Star,
-  Smartphone,
-  TicketPercent
+  TicketPercent,
+  Sun,
+  Moon
 } from "lucide-react";
 import NotificationDropdown from "@/components/layout/NotificationDropdown";
 import MaintenanceAlertBanner from "@/components/common/MaintenanceAlertBanner";
 import { removeTokens, getToken } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { useTheme } from "@/context/ThemeContext";
 
 const sidebarNavigation = [
   {
@@ -78,10 +80,11 @@ const sidebarNavigation = [
         name: "Settings", 
         icon: Settings,
         subLinks: [
-          { name: "General Settings", href: "/settings" },
+          { name: "Resource Usage", href: "/resource-usage" },
           { name: "Shipping", href: "/shipping" },
           { name: "WhatsApp Engine", href: "/whatsapp" },
-          { name: "Email Engine", href: "/email-engine" }
+          { name: "Email Engine", href: "/email-engine" },
+          { name: "Journal Logs", href: "/journal-logs" }
         ]
       },
     ],
@@ -95,11 +98,28 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, toggleTheme, isDark } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
   const [user, setUser] = useState<any>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    if (profileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileOpen]);
 
   const toggleDropdown = (name: string) => {
     setOpenDropdowns(prev => ({ ...prev, [name]: !prev[name] }));
@@ -131,7 +151,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-[#FAFAFA] flex">
+    <div className="h-screen overflow-hidden bg-[#FAFAFA] dark:bg-[#0B0F19] flex text-gray-900 dark:text-gray-100 transition-colors duration-200">
       {/* Mobile sidebar overlay */}
       <div
         className={`fixed inset-0 bg-gray-900/80 z-40 lg:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
@@ -139,8 +159,8 @@ export default function DashboardLayout({
       />
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-gray-200 transform transition-all duration-300 flex flex-col lg:static lg:flex ${isCollapsed ? 'lg:w-20 w-64' : 'w-64'} ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className={`flex h-16 shrink-0 items-center border-b border-gray-200 relative ${isCollapsed ? 'px-0 justify-center' : 'px-6'}`}>
+      <div className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-[#0F172A] border-r border-gray-200 dark:border-gray-800 transform transition-all duration-300 flex flex-col lg:static lg:flex ${isCollapsed ? 'lg:w-20 w-64' : 'w-64'} ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className={`flex h-16 shrink-0 items-center border-b border-gray-200 dark:border-gray-800 relative ${isCollapsed ? 'px-0 justify-center' : 'px-6'}`}>
           {!isCollapsed && (
             <div className="flex items-center">
               <img
@@ -192,7 +212,7 @@ export default function DashboardLayout({
                         } ${
                           isActive
                             ? "bg-gradient-to-r from-gold-400 to-gold-500 text-white shadow-md shadow-gold-500/20"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80"
                         }`}
                       >
                         <item.icon
@@ -234,7 +254,7 @@ export default function DashboardLayout({
                           } ${
                             isActive
                               ? "bg-gradient-to-r from-gold-400 to-gold-500 text-white shadow-md shadow-gold-500/20"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80"
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -260,7 +280,7 @@ export default function DashboardLayout({
                                     href={sub.href}
                                     onClick={() => setSidebarOpen(false)}
                                     className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                                      isSubActive ? "bg-gold-50 text-gold-700 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                                      isSubActive ? "bg-gold-50 text-gold-700 dark:bg-gold-950/60 dark:text-gold-300 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-white font-medium"
                                     }`}
                                   >
                                     {sub.name}
@@ -285,7 +305,7 @@ export default function DashboardLayout({
                         } ${
                           isActive
                             ? "bg-gradient-to-r from-gold-400 to-gold-500 text-white shadow-md shadow-gold-500/20"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80"
                         }`}
                       >
                         <item.icon
@@ -323,7 +343,7 @@ export default function DashboardLayout({
                         } ${
                           isActive
                             ? "bg-gradient-to-r from-gold-400 to-gold-500 text-white shadow-md shadow-gold-500/20"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80"
                         }`}
                       >
                         <item.icon
@@ -365,7 +385,7 @@ export default function DashboardLayout({
                           } ${
                             isActive
                               ? "bg-gradient-to-r from-gold-400 to-gold-500 text-white shadow-md shadow-gold-500/20"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80"
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -391,7 +411,7 @@ export default function DashboardLayout({
                                     href={sub.href}
                                     onClick={() => setSidebarOpen(false)}
                                     className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                                      isSubActive ? "bg-gold-50 text-gold-700 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                                      isSubActive ? "bg-gold-50 text-gold-700 dark:bg-gold-950/60 dark:text-gold-300 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/80 dark:hover:text-white font-medium"
                                     }`}
                                   >
                                     {sub.name}
@@ -416,7 +436,7 @@ export default function DashboardLayout({
                         } ${
                           isActive
                             ? "bg-gradient-to-r from-gold-400 to-gold-500 text-white shadow-md shadow-gold-500/20"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/80"
                         }`}
                       >
                         <item.icon
@@ -440,12 +460,12 @@ export default function DashboardLayout({
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-y-auto">
+      <div className="flex flex-1 flex-col min-w-0 overflow-y-auto bg-[#FAFAFA] dark:bg-[#0B0F19]">
         <MaintenanceAlertBanner />
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-100 bg-white px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0F172A] px-4 sm:gap-x-6 sm:px-6 lg:px-8 transition-colors">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+            className="-m-2.5 p-2.5 text-gray-700 dark:text-gray-300 lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
             <span className="sr-only">Open sidebar</span>
@@ -462,29 +482,42 @@ export default function DashboardLayout({
               <input
                 type="text"
                 placeholder="Search anything..."
-                className="block w-full rounded-xl border-0 py-2 pl-10 pr-12 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gold-500 sm:text-sm sm:leading-6 bg-gray-50"
+                className="block w-full rounded-xl border-0 py-2 pl-10 pr-12 text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-200 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gold-500 sm:text-sm sm:leading-6 bg-gray-50 dark:bg-gray-800/80"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <kbd className="inline-flex items-center rounded border border-gray-200 px-1 font-sans text-[10px] text-gray-400">Ctrl + K</kbd>
+                <kbd className="inline-flex items-center rounded border border-gray-200 dark:border-gray-700 px-1 font-sans text-[10px] text-gray-400">Ctrl + K</kbd>
               </div>
             </div>
 
-            <div className="flex items-center gap-x-4 lg:gap-x-6">
+            <div className="flex items-center gap-x-3 lg:gap-x-4">
+
+              {/* Quick Theme Toggle Button */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-xl text-gray-500 hover:text-gold-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gold-400 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDark ? (
+                  <Sun className="h-5 w-5 text-amber-400 animate-in spin-in-180 duration-300" />
+                ) : (
+                  <Moon className="h-5 w-5 text-gray-600 animate-in spin-in-180 duration-300" />
+                )}
+              </button>
 
               {/* Notification Dropdown */}
               <NotificationDropdown />
 
               {/* Separator */}
-              <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" aria-hidden="true" />
+              <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
 
               {/* Top Right Profile */}
               {user ? (
-                <div className="relative">
+                <div ref={profileRef} className="relative">
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-x-3 p-1.5 rounded-full hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
+                    className="flex items-center gap-x-3 p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700 cursor-pointer"
                   >
-                    <div className="flex items-center justify-center h-9 w-9 rounded-full bg-brandDark text-white font-bold text-sm shadow-sm overflow-hidden">
+                    <div className="flex items-center justify-center h-9 w-9 rounded-full bg-brandDark dark:bg-gold-500 text-white dark:text-gray-950 font-bold text-sm shadow-sm overflow-hidden">
                       {user.profileImage ? (
                         <img src={`http://localhost:5000${user.profileImage}`} alt="Profile" className="h-full w-full object-cover" />
                       ) : (
@@ -492,10 +525,10 @@ export default function DashboardLayout({
                       )}
                     </div>
                     <div className="hidden sm:flex flex-col items-start">
-                      <span className="text-sm font-bold text-brandDark leading-tight">
+                      <span className="text-sm font-bold text-brandDark dark:text-gray-100 leading-tight">
                         {user.firstName} {user.lastName}
                       </span>
-                      <span className="text-xs text-gray-500 leading-tight">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
                         Super Admin
                       </span>
                     </div>
@@ -504,17 +537,44 @@ export default function DashboardLayout({
 
                   {/* Dropdown */}
                   {profileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden border border-gray-100 py-1">
+                    <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-white dark:bg-[#1E293B] shadow-xl ring-1 ring-black/5 focus:outline-none z-50 overflow-hidden border border-gray-100 dark:border-gray-700 py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
+                        <p className="text-xs font-bold text-gray-900 dark:text-gray-100">{user.firstName} {user.lastName}</p>
+                        <p className="text-[11px] text-gray-400 truncate">{user.email}</p>
+                      </div>
+
                       <Link
                         href="/profile"
                         onClick={() => setProfileOpen(false)}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brandDark font-medium transition-colors"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/80 font-medium transition-colors"
                       >
-                        My Profile
+                        My Profile & Preferences
                       </Link>
+
+                      {/* Theme Toggle in Dropdown */}
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleTheme();
+                        }}
+                        className="px-4 py-2.5 flex items-center justify-between border-t border-b border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          {isDark ? <Moon className="h-4 w-4 text-amber-400" /> : <Sun className="h-4 w-4 text-amber-500" />}
+                          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Dark Theme</span>
+                        </div>
+                        <div
+                          className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors ${
+                            isDark ? 'bg-gold-500 justify-end' : 'bg-gray-300 dark:bg-gray-600 justify-start'
+                          }`}
+                        >
+                          <div className="w-4 h-4 rounded-full bg-white shadow-xs" />
+                        </div>
+                      </div>
+
                       <button
                         onClick={() => { setProfileOpen(false); handleLogout(); }}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium transition-colors"
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 font-medium transition-colors cursor-pointer"
                       >
                         Logout
                       </button>
@@ -522,7 +582,7 @@ export default function DashboardLayout({
                   )}
                 </div>
               ) : (
-                <div className="h-9 w-9 rounded-full bg-gray-200 animate-pulse"></div>
+                <div className="h-9 w-9 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
               )}
             </div>
           </div>

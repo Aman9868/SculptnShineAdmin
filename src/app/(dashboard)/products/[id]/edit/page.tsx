@@ -288,13 +288,17 @@ export default function EditProductPage() {
     try {
       setIsUploading(true);
       const isVideo = file.type.startsWith("video/");
-      const endpoint = isVideo ? "/uploads/video" : "/uploads/image";
+      const endpoint = "/upload";
 
       const res = await api.post(endpoint, fileFormData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const uploadedUrl = res.data.data.url;
+      const uploadedUrl = res.data?.data?.url || res.data?.url;
+
+      if (!uploadedUrl) {
+        throw new Error("No URL returned from server");
+      }
 
       if (isVideo) {
         setFormData((prev) => ({ ...prev, videos: [...prev.videos, uploadedUrl] }));

@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
@@ -25,10 +27,22 @@
   --bg-cream: #fcf9f2;
 }
 
+.dark {
+  --bg-cream: #080B11;
+  --color-brandDark: #F8FAFC;
+  color-scheme: dark;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-cream);
   color: #18181b;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.dark body {
+  background-color: #080B11;
+  color: #F8FAFC;
 }
 
 .font-serif-luxury {
@@ -44,10 +58,10 @@ body {
 }
 
 @utility glass-panel-dark {
-  background: rgba(24, 24, 27, 0.85);
+  background: rgba(13, 17, 28, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Subtle luxury card shadows */
@@ -70,3 +84,136 @@ body {
   scrollbar-width: none;  /* Firefox */
 }
 
+/* ==========================================================================
+   ULTRA-PREMIUM OBSIDIAN LUXURY DARK THEME SYSTEM
+   ========================================================================== */
+
+.dark h1, 
+.dark h2, 
+.dark h3, 
+.dark h4, 
+.dark h5, 
+.dark h6 {
+  color: #FFFFFF !important;
+  letter-spacing: -0.02em;
+}
+
+.dark .text-brandDark,
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: #F8FAFC !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: #CBD5E1 !important;
+}
+
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: #94A3B8 !important;
+}
+
+/* Luxury Cards & Panels */
+.dark .bg-white {
+  background-color: #0F1422 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-50\/70,
+.dark .bg-gray-50\/40,
+.dark .bg-gray-100 {
+  background-color: #141A2B !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Data Tables */
+.dark table {
+  color: #F1F5F9 !important;
+}
+
+.dark table thead th {
+  background-color: #0B0E17 !important;
+  color: #94A3B8 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.dark table tbody tr:hover {
+  background-color: rgba(20, 26, 43, 0.7) !important;
+}
+
+.dark table tbody td {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  color: #E2E8F0 !important;
+}
+
+/* Inputs, Textareas, Selects & Search Bars */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark select,
+.dark textarea {
+  background-color: #13192A !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #F59E0B !important;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Luminous Status Badges */
+.dark .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.6) !important;
+  color: #34D399 !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark .bg-rose-50,
+.dark .bg-red-50 {
+  background-color: rgba(136, 19, 55, 0.6) !important;
+  color: #FB7185 !important;
+  border-color: rgba(244, 63, 94, 0.4) !important;
+}
+
+.dark .bg-amber-50,
+.dark .bg-gold-50 {
+  background-color: rgba(120, 53, 15, 0.6) !important;
+  color: #FBBF24 !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(30, 58, 138, 0.6) !important;
+  color: #60A5FA !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Pagination & Action Controls */
+.dark .bg-white.border-gray-200 {
+  background-color: #13192A !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #E2E8F0 !important;
+}

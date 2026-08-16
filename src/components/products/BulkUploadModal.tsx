@@ -366,22 +366,22 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#0D121F] w-full max-w-4xl rounded-2xl shadow-2xl border border-gray-100 dark:border-white/[0.08] flex flex-col max-h-[90vh] overflow-hidden">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-linear-to-r from-gray-50 to-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/[0.08] bg-linear-to-r from-gray-50 to-white dark:from-[#0F1424] dark:to-[#0D121F]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gold-500/10 flex items-center justify-center text-gold-600 border border-gold-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gold-500/10 dark:bg-gold-500/20 flex items-center justify-center text-gold-600 dark:text-gold-400 border border-gold-500/20 dark:border-gold-500/30">
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Bulk Product Import</h2>
-              <p className="text-xs text-gray-500">Upload multiple products at once via Excel or CSV</p>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Bulk Product Import</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Upload multiple products at once via Excel or CSV</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all cursor-pointer"
+            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -455,35 +455,35 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
               {/* Step 1: Download Official Templates (Two Distinct Formats) */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-700 flex items-center gap-2">
-                    <Info className="w-4 h-4 text-gold-600" />
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <Info className="w-4 h-4 text-gold-600 dark:text-gold-400" />
                     Step 1: Download Pre-Configured Sample Template
                   </h3>
-                  <span className="text-2xs text-gray-500 font-medium">Choose your product format</span>
+                  <span className="text-2xs text-gray-500 dark:text-gray-400 font-medium">Choose your product format</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                   {/* Template Card 1: Simple Products (Without Variants) */}
-                  <div className="p-4 bg-linear-to-br from-emerald-50/80 via-white to-emerald-50/30 border border-emerald-200/90 rounded-2xl flex flex-col justify-between shadow-xs hover:border-emerald-300 transition-all">
+                  <div className="p-4 bg-linear-to-br from-emerald-50/80 via-white to-emerald-50/30 dark:from-emerald-950/40 dark:via-[#101726] dark:to-emerald-950/20 border border-emerald-200/90 dark:border-emerald-500/30 rounded-2xl flex flex-col justify-between shadow-xs hover:border-emerald-300 dark:hover:border-emerald-500/50 transition-all">
                     <div className="space-y-1.5 mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                        <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-xs">
                           1
                         </div>
-                        <h4 className="font-extrabold text-emerald-950 text-sm">
+                        <h4 className="font-extrabold text-emerald-950 dark:text-emerald-300 text-sm">
                           Simple Products (Without Variants)
                         </h4>
                       </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">
+                      <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
                         Best for standalone items like single-size skincare, cleansers, serums, lotions, and accessories.
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-emerald-100">
+                    <div className="flex items-center gap-2 pt-2 border-t border-emerald-100 dark:border-emerald-950/60">
                       <button
                         type="button"
                         onClick={() => handleDownloadSample("simple", "xlsx")}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
                         title="Download Simple Products Excel Template"
                       >
                         <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -492,36 +492,36 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                       <button
                         type="button"
                         onClick={() => handleDownloadSample("simple", "csv")}
-                        className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-white hover:bg-emerald-50/60 text-gray-700 border border-emerald-200 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-white dark:bg-[#151D2E] hover:bg-emerald-50/60 dark:hover:bg-emerald-950/50 text-gray-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/40 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
                         title="Download Simple Products CSV Template"
                       >
-                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                        <FileText className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         CSV (.csv)
                       </button>
                     </div>
                   </div>
 
                   {/* Template Card 2: Multi-Variant Products (With Variants) */}
-                  <div className="p-4 bg-linear-to-br from-blue-50/80 via-white to-indigo-50/30 border border-blue-200/90 rounded-2xl flex flex-col justify-between shadow-xs hover:border-blue-300 transition-all">
+                  <div className="p-4 bg-linear-to-br from-blue-50/80 via-white to-indigo-50/30 dark:from-blue-950/40 dark:via-[#101726] dark:to-indigo-950/20 border border-blue-200/90 dark:border-blue-500/30 rounded-2xl flex flex-col justify-between shadow-xs hover:border-blue-300 dark:hover:border-blue-500/50 transition-all">
                     <div className="space-y-1.5 mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                        <div className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs">
                           2
                         </div>
-                        <h4 className="font-extrabold text-blue-950 text-sm">
+                        <h4 className="font-extrabold text-blue-950 dark:text-blue-300 text-sm">
                           Multi-Variant Products (Flavors & Sizes)
                         </h4>
                       </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        Best for supplements & cosmetics with multiple flavors (Chocolate, Mango) and weights (2lbs, 5lbs) linked via <code className="bg-blue-100/80 text-blue-800 font-mono px-1 py-0.5 rounded text-2xs">ParentSKU</code>.
+                      <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                        Best for supplements & cosmetics with multiple flavors (Chocolate, Mango) and weights (2lbs, 5lbs) linked via <code className="bg-blue-100/80 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 font-mono px-1 py-0.5 rounded text-2xs">ParentSKU</code>.
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-blue-100">
+                    <div className="flex items-center gap-2 pt-2 border-t border-blue-100 dark:border-blue-950/60">
                       <button
                         type="button"
                         onClick={() => handleDownloadSample("variant", "xlsx")}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
                         title="Download Multi-Variant Products Excel Template"
                       >
                         <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -530,10 +530,10 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                       <button
                         type="button"
                         onClick={() => handleDownloadSample("variant", "csv")}
-                        className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-white hover:bg-blue-50/60 text-gray-700 border border-blue-200 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-white dark:bg-[#151D2E] hover:bg-blue-50/60 dark:hover:bg-blue-950/50 text-gray-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/40 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer"
                         title="Download Multi-Variant Products CSV Template"
                       >
-                        <FileText className="w-3.5 h-3.5 text-blue-600" />
+                        <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         CSV (.csv)
                       </button>
                     </div>
@@ -549,10 +549,10 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
                   isDragging
-                    ? "border-gold-500 bg-gold-50/50 scale-[1.01]"
+                    ? "border-gold-500 bg-gold-50/50 dark:bg-gold-950/30 scale-[1.01]"
                     : file
-                    ? "border-emerald-400 bg-emerald-50/30"
-                    : "border-gray-300 hover:border-gold-400 bg-gray-50/50 hover:bg-gray-50"
+                    ? "border-emerald-400 bg-emerald-50/30 dark:bg-emerald-950/20"
+                    : "border-gray-300 dark:border-white/[0.15] hover:border-gold-400 dark:hover:border-gold-500 bg-gray-50/50 dark:bg-[#13192B]/50 hover:bg-gray-50 dark:hover:bg-[#161F36]"
                 }`}
               >
                 <input
@@ -566,22 +566,22 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                 {isParsing ? (
                   <div className="flex flex-col items-center justify-center space-y-2 py-4">
                     <Loader2 className="w-8 h-8 text-gold-600 animate-spin" />
-                    <p className="text-sm font-semibold text-gray-700">Analyzing spreadsheet data...</p>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">Analyzing spreadsheet data...</p>
                   </div>
                 ) : file ? (
                   <div className="flex flex-col items-center justify-center space-y-2">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-xs">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs">
                       <FileSpreadsheet className="w-6 h-6" />
                     </div>
-                    <p className="text-sm font-bold text-gray-900">{file.name}</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">{file.name}</p>
                     {(() => {
                       const parentCount = parsedRows.filter(r => !(r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim() && (r.title || r.Title || '')).length;
                       const variantCount = parsedRows.filter(r => !!(r.parentSku || r.ParentSKU || r.parent_sku || r['Parent SKU'] || '').toString().trim()).length;
                       return (
-                        <p className="text-xs text-gray-500">
-                          {(file.size / 1024).toFixed(1)} KB • <span className="font-bold text-emerald-600">{parsedRows.length} rows detected</span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {(file.size / 1024).toFixed(1)} KB • <span className="font-bold text-emerald-600 dark:text-emerald-400">{parsedRows.length} rows detected</span>
                           {variantCount > 0 && (
-                            <span className="ml-1 text-gray-400">
+                            <span className="ml-1 text-gray-400 dark:text-gray-500">
                               ({parentCount} products, {variantCount} variants)
                             </span>
                           )}
@@ -594,21 +594,21 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                         e.stopPropagation();
                         handleReset();
                       }}
-                      className="text-xs font-semibold text-rose-600 hover:text-rose-700 underline mt-1"
+                      className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 underline mt-1"
                     >
                       Remove & choose another file
                     </button>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center space-y-2">
-                    <div className="w-12 h-12 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center shadow-xs">
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-[#1A2238] text-gray-600 dark:text-gray-300 flex items-center justify-center shadow-xs">
                       <Upload className="w-6 h-6" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">
+                    <p className="text-sm font-bold text-gray-800 dark:text-white">
                       Click to upload or drag & drop spreadsheet
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Supports Excel (<code className="text-gray-700">.xlsx</code>, <code className="text-gray-700">.xls</code>) and CSV (<code className="text-gray-700">.csv</code>)
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Supports Excel (<code className="text-gray-700 dark:text-gray-300">.xlsx</code>, <code className="text-gray-700 dark:text-gray-300">.xls</code>) and CSV (<code className="text-gray-700 dark:text-gray-300">.csv</code>)
                     </p>
                   </div>
                 )}
@@ -668,10 +668,10 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                     );
                   })()}
 
-                  <div className="border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
+                  <div className="border border-gray-200 dark:border-white/[0.08] rounded-xl overflow-hidden shadow-2xs">
                     <div className="max-h-72 overflow-x-auto overflow-y-auto">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-gray-100/80 text-gray-700 font-bold border-b border-gray-200 sticky top-0 z-10">
+                        <thead className="bg-gray-100/80 dark:bg-[#13192B] text-gray-700 dark:text-gray-300 font-bold border-b border-gray-200 dark:border-white/[0.08] sticky top-0 z-10">
                           <tr>
                             <th className="px-3 py-2 w-8">#</th>
                             <th className="px-3 py-2 w-16">Type</th>
@@ -684,7 +684,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                             <th className="px-3 py-2">Status</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 bg-white">
+                        <tbody className="divide-y divide-gray-100 dark:divide-white/[0.06] bg-white dark:bg-[#0D121F]">
                           {parsedRows.map((row, idx) => {
                             const parentSku = (row.parentSku || row.ParentSKU || row.parent_sku || row['Parent SKU'] || '').toString().trim();
                             const sku = (row.sku || row.SKU || '').toString().trim();
@@ -701,24 +701,24 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                                 key={idx}
                                 className={`transition-colors ${
                                   isParent
-                                    ? 'bg-emerald-50/40 hover:bg-emerald-50/70'
+                                    ? 'bg-emerald-50/40 dark:bg-emerald-950/30 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/50'
                                     : isVariant
-                                    ? 'bg-blue-50/20 hover:bg-blue-50/50'
-                                    : 'hover:bg-gray-50/80'
+                                    ? 'bg-blue-50/20 dark:bg-blue-950/30 hover:bg-blue-50/50 dark:hover:bg-blue-950/50'
+                                    : 'hover:bg-gray-50/80 dark:hover:bg-[#151C2F]'
                                 }`}
                               >
-                                <td className="px-3 py-2 text-gray-400 font-mono text-2xs">{idx + 1}</td>
+                                <td className="px-3 py-2 text-gray-400 dark:text-gray-500 font-mono text-2xs">{idx + 1}</td>
                                 <td className="px-3 py-2">
                                   {isParent ? (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-extrabold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                                       <Package className="w-2.5 h-2.5" /> Parent
                                     </span>
                                   ) : isVariant ? (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-extrabold bg-blue-100 text-blue-700 border border-blue-200">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-extrabold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
                                       <GitBranch className="w-2.5 h-2.5" /> Variant
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-2xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/[0.08]">
                                       Simple
                                     </span>
                                   )}
@@ -726,14 +726,14 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                                 <td className="px-3 py-2 max-w-[200px]" title={title}>
                                   <div className={`flex items-center gap-1.5 ${isVariant ? 'pl-3' : ''}`}>
                                     {isVariant && (
-                                      <span className="text-blue-300 flex-shrink-0">└</span>
+                                      <span className="text-blue-300 dark:text-blue-400 flex-shrink-0">└</span>
                                     )}
                                     <span className={`truncate ${
                                       isParent
-                                        ? 'font-extrabold text-emerald-900'
+                                        ? 'font-extrabold text-emerald-900 dark:text-emerald-300'
                                         : isVariant
-                                        ? 'font-medium text-gray-700'
-                                        : 'font-semibold text-gray-900'
+                                        ? 'font-medium text-gray-700 dark:text-gray-200'
+                                        : 'font-semibold text-gray-900 dark:text-white'
                                     }`}>
                                       {title || <span className="text-rose-500 font-bold">Missing Title</span>}
                                     </span>
@@ -741,27 +741,27 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                                   {isVariant && (
                                     <div className="flex items-center gap-1 mt-0.5 pl-3">
                                       <Link2 className="w-2.5 h-2.5 text-blue-400" />
-                                      <span className="text-2xs text-blue-500 font-mono">{parentSku}</span>
+                                      <span className="text-2xs text-blue-500 dark:text-blue-400 font-mono">{parentSku}</span>
                                     </div>
                                   )}
                                 </td>
-                                <td className="px-3 py-2 text-gray-600 font-mono text-2xs">
-                                  {sku || <span className="text-gray-400 italic">Auto-gen</span>}
+                                <td className="px-3 py-2 text-gray-600 dark:text-gray-400 font-mono text-2xs">
+                                  {sku || <span className="text-gray-400 dark:text-gray-500 italic">Auto-gen</span>}
                                 </td>
-                                <td className="px-3 py-2 text-gray-700">{row.brand || row.Brand || row.brandName || '—'}</td>
-                                <td className="px-3 py-2 text-gray-600 text-2xs">
+                                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{row.brand || row.Brand || row.brandName || '—'}</td>
+                                <td className="px-3 py-2 text-gray-600 dark:text-gray-400 text-2xs">
                                   {weight ? (
-                                    <span className="bg-purple-50 text-purple-700 font-bold px-1.5 py-0.5 rounded border border-purple-100">{weight}</span>
+                                    <span className="bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold px-1.5 py-0.5 rounded border border-purple-100 dark:border-purple-800/60">{weight}</span>
                                   ) : '—'}
                                 </td>
-                                <td className="px-3 py-2 font-bold text-gray-900">
+                                <td className="px-3 py-2 font-bold text-gray-900 dark:text-white">
                                   ₹{row.unitPrice || row.UnitPrice || row.price || 0}
                                 </td>
-                                <td className="px-3 py-2 font-semibold text-gray-800">
+                                <td className="px-3 py-2 font-semibold text-gray-800 dark:text-gray-200">
                                   {row.stock || row.Stock || row.quantity || 0}
                                 </td>
                                 <td className="px-3 py-2">
-                                  <span className="inline-flex px-1.5 py-0.5 rounded text-2xs font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <span className="inline-flex px-1.5 py-0.5 rounded text-2xs font-extrabold uppercase bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                                     {row.status || row.Status || 'ACTIVE'}
                                   </span>
                                 </td>
@@ -779,13 +779,13 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-white/[0.08] bg-gray-50 dark:bg-[#0F1424]">
           {uploadResult ? (
             <div className="flex items-center justify-between w-full">
               <button
                 type="button"
                 onClick={handleReset}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-100 transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-[#1A2238] border border-gray-300 dark:border-white/[0.12] rounded-xl hover:bg-gray-100 dark:hover:bg-[#222C46] transition-all cursor-pointer shadow-2xs"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Upload Another File
@@ -805,7 +805,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                 type="button"
                 onClick={onClose}
                 disabled={isUploading}
-                className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -815,7 +815,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }: BulkUplo
                 disabled={!file || parsedRows.length === 0 || isUploading}
                 className={`inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white rounded-xl shadow-md transition-all ${
                   !file || parsedRows.length === 0 || isUploading
-                    ? "bg-gray-300 cursor-not-allowed text-gray-500 shadow-none"
+                    ? "bg-gray-300 dark:bg-gray-800 cursor-not-allowed text-gray-500 dark:text-gray-500 shadow-none border border-transparent dark:border-white/[0.06]"
                     : "bg-gold-600 hover:bg-gold-700 active:scale-98 cursor-pointer"
                 }`}
               >

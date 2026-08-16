@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import { useToast } from "@/context/ToastContext";
+import { getMediaUrl } from "@/lib/media";
 import * as XLSX from "xlsx";
 import BulkUploadModal from "@/components/products/BulkUploadModal";
 
@@ -426,7 +427,7 @@ export default function ProductsPage() {
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
                           <img 
-                            src={p.images && p.images.length > 0 && p.images[0] ? p.images[0] : '/assets/product-placeholder.png'} 
+                            src={p.images && p.images.length > 0 && p.images[0] ? getMediaUrl(p.images[0]) : '/assets/product-placeholder.png'} 
                             alt={p.title} 
                             onError={(e: any) => {
                               e.currentTarget.onerror = null;
