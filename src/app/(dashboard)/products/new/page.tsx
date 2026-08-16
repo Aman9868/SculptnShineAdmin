@@ -7,6 +7,7 @@ import { useToast } from "@/context/ToastContext";
 import { ArrowLeft, Loader2, UploadCloud, Package } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "@/components/RichTextEditor";
+import { getMediaUrl } from "@/lib/media";
 
 export default function AddNewProductPage() {
   const router = useRouter();
@@ -1021,7 +1022,7 @@ export default function AddNewProductPage() {
                     {/* Images Previews */}
                     {formData.images.map((img, idx) => (
                       <div key={`img-${idx}`} className="relative group aspect-square rounded-xl bg-gray-100 border border-gray-200 overflow-hidden">
-                        <img src={img} alt={`Product image ${idx + 1}`} className="w-full h-full object-cover" />
+                        <img src={getMediaUrl(img)} alt={`Product image ${idx + 1}`} className="w-full h-full object-cover" />
                         <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
                           IMG
                         </span>

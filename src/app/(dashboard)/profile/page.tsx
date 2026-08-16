@@ -22,8 +22,13 @@ import {
   AlertCircle,
   Phone,
   FileText,
-  ArrowLeft
+  ArrowLeft,
+  Sun,
+  Moon,
+  Laptop,
+  Sparkles
 } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 // Schemas
 const generalSchema = z.object({
@@ -62,6 +67,7 @@ type SocialFormValues = z.infer<typeof socialSchema>;
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export default function ProfilePage() {
+  const { theme, setTheme, isDark } = useTheme();
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   
   // Avatar Upload State
@@ -292,13 +298,99 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-8">
           
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-              <div className="h-10 w-10 rounded-xl bg-gold-50 border border-gold-100 flex items-center justify-center text-gold-600">
+          {/* Theme & Appearance Preference Card */}
+          <div className="bg-white dark:bg-[#131C2E] rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 sm:p-8 transition-colors">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gold-50 dark:bg-gold-950/50 border border-gold-100 dark:border-gold-800 flex items-center justify-center text-gold-600 dark:text-gold-400">
+                  {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Theme & Appearance</h2>
+                  <p className="text-xs text-gray-400">Personalize your admin dashboard viewing experience</p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-gold-50 dark:bg-gold-950/60 text-gold-700 dark:text-gold-300 border border-gold-200 dark:border-gold-800">
+                {theme === "dark" ? "Dark Mode" : theme === "light" ? "Light Mode" : "Auto System"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              {/* Light Mode Option */}
+              <button
+                type="button"
+                onClick={() => setTheme("light")}
+                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all cursor-pointer ${
+                  theme === "light"
+                    ? "border-gold-500 bg-gold-50/40 dark:bg-gold-950/20 shadow-sm"
+                    : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-[#1E293B]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-8 w-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <Sun className="h-4 w-4" />
+                  </div>
+                  {theme === "light" && <CheckCircle2 className="h-4 w-4 text-gold-600" />}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">Light Mode</h4>
+                  <p className="text-[11px] text-gray-500 mt-0.5">Classic bright luxury palette</p>
+                </div>
+              </button>
+
+              {/* Dark Mode Option */}
+              <button
+                type="button"
+                onClick={() => setTheme("dark")}
+                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all cursor-pointer ${
+                  theme === "dark"
+                    ? "border-gold-500 bg-gold-50/40 dark:bg-gold-950/20 shadow-sm"
+                    : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-[#1E293B]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-8 w-8 rounded-lg bg-slate-800 text-amber-400 flex items-center justify-center">
+                    <Moon className="h-4 w-4" />
+                  </div>
+                  {theme === "dark" && <CheckCircle2 className="h-4 w-4 text-gold-600" />}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">Dark Mode</h4>
+                  <p className="text-[11px] text-gray-500 mt-0.5">Midnight executive high-contrast</p>
+                </div>
+              </button>
+
+              {/* System Option */}
+              <button
+                type="button"
+                onClick={() => setTheme("system")}
+                className={`p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition-all cursor-pointer ${
+                  theme === "system"
+                    ? "border-gold-500 bg-gold-50/40 dark:bg-gold-950/20 shadow-sm"
+                    : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-[#1E293B]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                    <Laptop className="h-4 w-4" />
+                  </div>
+                  {theme === "system" && <CheckCircle2 className="h-4 w-4 text-gold-600" />}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">System Auto</h4>
+                  <p className="text-[11px] text-gray-500 mt-0.5">Matches OS preference</p>
+                </div>
+              </button>
+            </div>
+          </div>
+          
+          <div className="bg-white dark:bg-[#131C2E] rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 sm:p-8 transition-colors">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+              <div className="h-10 w-10 rounded-xl bg-gold-50 dark:bg-gold-950/50 border border-gold-100 dark:border-gold-800 flex items-center justify-center text-gold-600 dark:text-gold-400">
                 <User className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">General Information</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">General Information</h2>
                 <p className="text-xs text-gray-400">Personal admin credentials and display avatar</p>
               </div>
             </div>

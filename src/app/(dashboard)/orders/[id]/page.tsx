@@ -4,6 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { orderAPI } from '@/lib/api/order';
 import { api } from '@/lib/api';
+import { getMediaUrl } from '@/lib/media';
 import { ArrowLeft, Package, Truck, User, MapPin, Calendar, Clock, CreditCard, Save, FileText, Activity, ShoppingBag, Tag } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 
@@ -158,7 +159,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                 <div key={item.id} className="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
                   <div className="w-16 h-16 bg-gray-50 rounded-xl border border-gray-100 flex-shrink-0 p-2">
                     {item.product.images?.[0] ? (
-                      <img src={item.product.images[0]} alt={item.product.title} className="w-full h-full object-contain mix-blend-multiply" />
+                      <img src={getMediaUrl(item.product.images[0])} alt={item.product.title} className="w-full h-full object-contain mix-blend-multiply" />
                     ) : (
                       <Package className="w-full h-full text-gray-300 p-2" />
                     )}

@@ -278,12 +278,15 @@ export default function BrandsPage() {
                   >
                     <td className="p-4 pl-6">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-gold-300 transition-colors">
-                          {brand.logo ? (
-                            <img src={getMediaUrl(brand.logo)} alt={brand.name} className="h-full w-full object-contain p-1" />
-                          ) : (
-                            <Building className="h-5 w-5 text-gray-400" />
-                          )}
+                        <div className="h-10 w-10 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-white/[0.08] flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-gold-300 transition-colors">
+                          <img 
+                            src={brand.logo ? getMediaUrl(brand.logo) : '/logo.png'} 
+                            alt={brand.name} 
+                            className="h-full w-full object-contain p-1"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/logo.png';
+                            }}
+                          />
                         </div>
                         <div>
                           <p className="font-bold text-gray-900 group-hover:text-gold-600 transition-colors">{brand.name}</p>
@@ -375,90 +378,95 @@ export default function BrandsPage() {
 
       {/* Add Brand Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0D121F] rounded-2xl border border-gray-100 dark:border-white/[0.08] shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/[0.08] p-5 bg-linear-to-r from-gray-50 to-white dark:from-[#0F1424] dark:to-[#0D121F]">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Add New Brand</h3>
-                <p className="text-xs text-gray-500">Create a new official manufacturer brand</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Add New Brand</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Create a new official manufacturer brand</p>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateBrand} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Brand Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={newBrand.name}
-                  onChange={handleNameChangeNew}
-                  placeholder="e.g. Optimum Nutrition"
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+            {/* Modal Form Body */}
+            <form onSubmit={handleCreateBrand} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-5 overflow-y-auto space-y-4 flex-1">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Brand Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newBrand.name}
+                    onChange={handleNameChangeNew}
+                    placeholder="e.g. Optimum Nutrition"
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-200">URL Slug *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newBrand.slug}
+                    onChange={(e) => setNewBrand({ ...newBrand, slug: e.target.value })}
+                    placeholder="optimum-nutrition"
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-gold-500"
+                  />
+                </div>
+
+                <ImageUploadInput
+                  label="Brand Logo"
+                  value={newBrand.logo}
+                  onChange={(img: string) => setNewBrand({ ...newBrand, logo: img })}
+                  compact={true}
+                  aspectRatio="square"
+                  helperText="PNG, JPG, WebP logo or URL"
                 />
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Website</label>
+                  <input
+                    type="url"
+                    value={newBrand.website}
+                    onChange={(e) => setNewBrand({ ...newBrand, website: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Status</label>
+                  <select
+                    value={newBrand.status}
+                    onChange={(e) => setNewBrand({ ...newBrand, status: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">URL Slug *</label>
-                <input
-                  type="text"
-                  required
-                  value={newBrand.slug}
-                  onChange={(e) => setNewBrand({ ...newBrand, slug: e.target.value })}
-                  placeholder="optimum-nutrition"
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-gold-500"
-                />
-              </div>
-
-              <ImageUploadInput
-                label="Brand Logo"
-                value={newBrand.logo}
-                onChange={(img: string) => setNewBrand({ ...newBrand, logo: img })}
-                compact={true}
-                aspectRatio="square"
-                helperText="PNG, JPG, WebP logo or URL"
-              />
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Website</label>
-                <input
-                  type="url"
-                  value={newBrand.website}
-                  onChange={(e) => setNewBrand({ ...newBrand, website: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Status</label>
-                <select
-                  value={newBrand.status}
-                  onChange={(e) => setNewBrand({ ...newBrand, status: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 bg-white font-medium"
-                >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                </select>
-              </div>
-
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              {/* Modal Footer */}
+              <div className="p-4 px-5 border-t border-gray-100 dark:border-white/[0.08] bg-gray-50/70 dark:bg-[#0F1424] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 border border-gray-200 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-200 dark:border-white/[0.1] text-gray-700 dark:text-gray-300 font-bold rounded-xl text-xs hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold rounded-xl text-xs hover:from-gold-600 hover:to-gold-700 transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold rounded-xl text-xs hover:from-gold-600 hover:to-gold-700 transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-md"
                 >
                   {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                   Create Brand
@@ -471,88 +479,93 @@ export default function BrandsPage() {
 
       {/* Edit Brand Modal */}
       {editingBrand && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#0D121F] rounded-2xl border border-gray-100 dark:border-white/[0.08] shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/[0.08] p-5 bg-linear-to-r from-gray-50 to-white dark:from-[#0F1424] dark:to-[#0D121F]">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Edit Brand</h3>
-                <p className="text-xs text-gray-500">Update brand details and logo</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Edit Brand</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Update brand details and logo</p>
               </div>
               <button
                 onClick={() => setEditingBrand(null)}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleUpdateBrand} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Brand Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={editingBrand.name}
-                  onChange={(e) => setEditingBrand({ ...editingBrand, name: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+            {/* Modal Form Body */}
+            <form onSubmit={handleUpdateBrand} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-5 overflow-y-auto space-y-4 flex-1">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Brand Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingBrand.name}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, name: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-200">URL Slug *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingBrand.slug}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, slug: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-gold-500"
+                  />
+                </div>
+
+                <ImageUploadInput
+                  label="Brand Logo"
+                  value={editingBrand.logo || ""}
+                  onChange={(img: string) => setEditingBrand({ ...editingBrand, logo: img })}
+                  compact={true}
+                  aspectRatio="square"
+                  helperText="PNG, JPG, WebP logo or URL"
                 />
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Website</label>
+                  <input
+                    type="url"
+                    value={editingBrand.website || ""}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, website: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-200">Status</label>
+                  <select
+                    value={editingBrand.status}
+                    onChange={(e) => setEditingBrand({ ...editingBrand, status: e.target.value })}
+                    className="w-full px-3.5 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">URL Slug *</label>
-                <input
-                  type="text"
-                  required
-                  value={editingBrand.slug}
-                  onChange={(e) => setEditingBrand({ ...editingBrand, slug: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-gold-500"
-                />
-              </div>
-
-              <ImageUploadInput
-                label="Brand Logo"
-                value={editingBrand.logo || ""}
-                onChange={(img: string) => setEditingBrand({ ...editingBrand, logo: img })}
-                compact={true}
-                aspectRatio="square"
-                helperText="PNG, JPG, WebP logo or URL"
-              />
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Website</label>
-                <input
-                  type="url"
-                  value={editingBrand.website || ""}
-                  onChange={(e) => setEditingBrand({ ...editingBrand, website: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Status</label>
-                <select
-                  value={editingBrand.status}
-                  onChange={(e) => setEditingBrand({ ...editingBrand, status: e.target.value })}
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-gold-500 bg-white font-medium"
-                >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                </select>
-              </div>
-
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              {/* Modal Footer */}
+              <div className="p-4 px-5 border-t border-gray-100 dark:border-white/[0.08] bg-gray-50/70 dark:bg-[#0F1424] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setEditingBrand(null)}
-                  className="px-4 py-2 border border-gray-200 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-200 dark:border-white/[0.1] text-gray-700 dark:text-gray-300 font-bold rounded-xl text-xs hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold rounded-xl text-xs hover:from-gold-600 hover:to-gold-700 transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-bold rounded-xl text-xs hover:from-gold-600 hover:to-gold-700 transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-md"
                 >
                   {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                   Save Changes

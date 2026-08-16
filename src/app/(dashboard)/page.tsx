@@ -262,7 +262,7 @@ export default function DashboardHome() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         {statCards.map((item) => (
-          <div key={item.name} className="bg-white rounded-[24px] shadow-sm border border-gray-100/80 flex flex-col relative h-[184px]">
+          <div key={item.name} className="bg-white dark:bg-[#101524] rounded-[24px] shadow-sm border border-gray-100/80 dark:border-white/[0.08] flex flex-col relative h-[184px]">
             {/* Top Section: Icon, Title, Stat, ... */}
             <div className="flex p-5 relative z-10">
               {/* Icon */}
@@ -273,18 +273,22 @@ export default function DashboardHome() {
               {/* Text Content */}
               <div className="ml-4 flex-1">
                 <div className="flex justify-between items-start w-full">
-                  <p className="text-[13px] font-semibold text-gray-500 tracking-tight">{item.name}</p>
+                  <p className="text-[13px] font-semibold text-gray-500 dark:text-gray-400 tracking-tight">{item.name}</p>
                 </div>
-                <h3 className="text-[24px] font-extrabold text-[#1a1b25] mt-1 leading-none">{item.stat}</h3>
+                <h3 className="text-[24px] font-extrabold text-[#1a1b25] dark:text-white mt-1 leading-none">{item.stat}</h3>
               </div>
             </div>
 
             {/* Pill & Text */}
             <div className="flex flex-col items-center justify-center relative z-10 mt-1">
-              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 ${item.changeType === 'increase' ? 'bg-[#e5f7ed] text-[#27AE60]' : 'bg-[#ffeceb] text-[#F22973]'}`}>
+              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
+                item.changeType === 'increase'
+                  ? 'bg-[#e5f7ed] dark:bg-emerald-950/60 text-[#27AE60] dark:text-emerald-400 border border-transparent dark:border-emerald-800/60'
+                  : 'bg-[#ffeceb] dark:bg-rose-950/60 text-[#F22973] dark:text-rose-400 border border-transparent dark:border-rose-800/60'
+              }`}>
                 {item.changeType === 'increase' ? '↑' : '↓'} {item.change.replace('+', '').replace('-', '')}
               </span>
-              <span className="text-[11px] text-gray-400 font-medium mt-1.5">vs last 7 days</span>
+              <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium mt-1.5">vs last 7 days</span>
             </div>
 
             {/* Area Chart at absolute bottom */}
@@ -334,14 +338,14 @@ export default function DashboardHome() {
               </div>
 
               {/* Range Selector Tabs */}
-              <div className="flex items-center bg-gray-100/80 p-1 rounded-xl border border-gray-200/60 text-xs font-semibold text-gray-600 self-start sm:self-auto">
+              <div className="flex items-center bg-gray-100/80 dark:bg-[#13192B] p-1 rounded-xl border border-gray-200/60 dark:border-white/[0.08] text-xs font-semibold text-gray-600 dark:text-gray-400 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => handleRangeChange("7d")}
                   className={`px-3 py-1 rounded-lg transition-all ${
                     dateRange === "7d"
-                      ? "bg-white text-gray-900 shadow-xs font-bold"
-                      : "hover:text-gray-900 hover:bg-white/50"
+                      ? "bg-white dark:bg-gold-500 text-gray-900 dark:text-gray-950 shadow-xs font-bold"
+                      : "hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5"
                   }`}
                 >
                   7D
@@ -351,8 +355,8 @@ export default function DashboardHome() {
                   onClick={() => handleRangeChange("14d")}
                   className={`px-3 py-1 rounded-lg transition-all ${
                     dateRange === "14d"
-                      ? "bg-white text-gray-900 shadow-xs font-bold"
-                      : "hover:text-gray-900 hover:bg-white/50"
+                      ? "bg-white dark:bg-gold-500 text-gray-900 dark:text-gray-950 shadow-xs font-bold"
+                      : "hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5"
                   }`}
                 >
                   14D
@@ -362,8 +366,8 @@ export default function DashboardHome() {
                   onClick={() => handleRangeChange("30d")}
                   className={`px-3 py-1 rounded-lg transition-all ${
                     dateRange === "30d"
-                      ? "bg-white text-gray-900 shadow-xs font-bold"
-                      : "hover:text-gray-900 hover:bg-white/50"
+                      ? "bg-white dark:bg-gold-500 text-gray-900 dark:text-gray-950 shadow-xs font-bold"
+                      : "hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5"
                   }`}
                 >
                   30D
@@ -373,11 +377,11 @@ export default function DashboardHome() {
                   onClick={() => handleRangeChange("custom")}
                   className={`px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all ${
                     dateRange === "custom"
-                      ? "bg-white text-gray-900 shadow-xs font-bold"
-                      : "hover:text-gray-900 hover:bg-white/50"
+                      ? "bg-white dark:bg-gold-500 text-gray-900 dark:text-gray-950 shadow-xs font-bold"
+                      : "hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5"
                   }`}
                 >
-                  <CalendarDays className="w-3.5 h-3.5 text-gold-600" />
+                  <CalendarDays className="w-3.5 h-3.5 text-gold-600 dark:text-gold-400" />
                   <span>Custom</span>
                 </button>
               </div>
@@ -385,9 +389,9 @@ export default function DashboardHome() {
 
             {/* Custom Date Range Calendar Inputs (Shown when 'Custom' is active) */}
             {dateRange === "custom" && (
-              <form onSubmit={handleApplyCustomDate} className="mb-5 p-3.5 rounded-xl bg-gray-50/90 border border-gray-200 flex flex-wrap items-center gap-3 animate-in fade-in slide-in-from-top-1 duration-200">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
-                  <Calendar className="w-4 h-4 text-gold-600 shrink-0" />
+              <form onSubmit={handleApplyCustomDate} className="mb-5 p-3.5 rounded-xl bg-gray-50/90 dark:bg-[#13192B] border border-gray-200 dark:border-white/[0.08] flex flex-wrap items-center gap-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <Calendar className="w-4 h-4 text-gold-600 dark:text-gold-400 shrink-0" />
                   <span>Date Range:</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -396,7 +400,7 @@ export default function DashboardHome() {
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     max={endDate || undefined}
-                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold bg-white text-gray-800 focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 outline-none"
+                    className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-white/[0.12] text-xs font-semibold bg-white dark:bg-[#1A2238] text-gray-800 dark:text-white focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 outline-none"
                     required
                   />
                   <span className="text-xs text-gray-400 font-bold">to</span>
@@ -405,7 +409,7 @@ export default function DashboardHome() {
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate || undefined}
-                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold bg-white text-gray-800 focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 outline-none"
+                    className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-white/[0.12] text-xs font-semibold bg-white dark:bg-[#1A2238] text-gray-800 dark:text-white focus:ring-2 focus:ring-gold-500/30 focus:border-gold-500 outline-none"
                     required
                   />
                 </div>
@@ -421,28 +425,28 @@ export default function DashboardHome() {
             )}
 
             {/* Quick Metrics Bar for Selected Range */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 p-3 rounded-xl bg-gray-50/50 border border-gray-100">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 p-3 rounded-xl bg-gray-50/50 dark:bg-[#13192B]/70 border border-gray-100 dark:border-white/[0.08]">
               <div>
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 block">Period Revenue</span>
-                <span className="text-sm font-extrabold text-amber-600">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-400 block">Period Revenue</span>
+                <span className="text-sm font-extrabold text-amber-600 dark:text-amber-400">
                   {formatCurrencyCompact(salesChart.reduce((acc, curr) => acc + (Number(curr.revenue) || 0), 0))}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 block">Period Orders</span>
-                <span className="text-sm font-extrabold text-purple-600">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-400 block">Period Orders</span>
+                <span className="text-sm font-extrabold text-purple-600 dark:text-purple-400">
                   {salesChart.reduce((acc, curr) => acc + (Number(curr.orders) || 0), 0)} orders
                 </span>
               </div>
               <div>
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 block">Data Points</span>
-                <span className="text-sm font-extrabold text-gray-700">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-400 block">Data Points</span>
+                <span className="text-sm font-extrabold text-gray-700 dark:text-gray-200">
                   {salesChart.length} Days
                 </span>
               </div>
               <div>
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 block">Timeline Status</span>
-                <span className={`text-xs font-bold ${isRealSales ? "text-emerald-600" : "text-amber-600"}`}>
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 dark:text-gray-400 block">Timeline Status</span>
+                <span className={`text-xs font-bold ${isRealSales ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
                   {isRealSales ? "Active Sales" : "Simulation"}
                 </span>
               </div>
@@ -531,15 +535,15 @@ export default function DashboardHome() {
         </div>
 
         {/* Top Products Table */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col">
+        <div className="bg-white dark:bg-[#101524] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-white/[0.08] flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-gray-900">Top Products</h2>
-            <button onClick={() => router.push('/products')} className="text-sm font-semibold text-gold-600 hover:text-gold-700">View all</button>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Top Products</h2>
+            <button onClick={() => router.push('/products')} className="text-sm font-semibold text-gold-600 dark:text-gold-400 hover:text-gold-700 cursor-pointer">View all</button>
           </div>
           
           <div className="flex-1 overflow-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-400 uppercase bg-white border-b border-gray-100">
+              <thead className="text-xs text-gray-400 uppercase bg-white dark:bg-[#0F1422] border-b border-gray-100 dark:border-white/[0.08]">
                 <tr>
                   <th className="px-2 py-3 font-semibold">Product</th>
                   <th className="px-2 py-3 font-semibold text-right">Sold</th>
@@ -559,10 +563,10 @@ export default function DashboardHome() {
                       <tr 
                         key={prod.id || idx} 
                         onClick={() => prod.id && router.push(`/products/${prod.id}`)}
-                        className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="border-b border-gray-50 dark:border-white/[0.06] last:border-0 hover:bg-gray-50 dark:hover:bg-[#151C2F] transition-colors cursor-pointer"
                       >
                         <td className="px-2 py-3.5 flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-100 dark:border-white/[0.08] overflow-hidden shrink-0 flex items-center justify-center">
                             <img 
                               src={prod.images?.[0] || '/assets/product-placeholder.png'} 
                               alt={title} 
@@ -573,10 +577,10 @@ export default function DashboardHome() {
                               className="w-full h-full object-cover" 
                             />
                           </div>
-                          <span className="font-semibold text-gray-800 line-clamp-1 max-w-[140px]">{title}</span>
+                          <span className="font-semibold text-gray-800 dark:text-gray-200 line-clamp-1 max-w-[140px]">{title}</span>
                         </td>
-                        <td className="px-2 py-3.5 text-right text-gray-500 font-medium">{soldCount}</td>
-                        <td className="px-2 py-3.5 text-right font-bold text-gray-900">
+                        <td className="px-2 py-3.5 text-right text-gray-500 dark:text-gray-400 font-medium">{soldCount}</td>
+                        <td className="px-2 py-3.5 text-right font-bold text-gray-900 dark:text-white">
                           {formatCurrencyCompact(revenueAmount)}
                         </td>
                       </tr>
@@ -584,7 +588,7 @@ export default function DashboardHome() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={3} className="text-center py-8 text-gray-400 text-xs">
+                    <td colSpan={3} className="text-center py-8 text-gray-400 dark:text-gray-500 text-xs">
                       No products found. Add products in catalog.
                     </td>
                   </tr>
@@ -597,18 +601,18 @@ export default function DashboardHome() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Orders */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="lg:col-span-2 bg-white dark:bg-[#101524] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-white/[0.08]">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-gray-900">Recent Orders</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Recent Orders</h2>
               <Info className="h-4 w-4 text-gray-400" />
             </div>
-            <button onClick={() => router.push('/orders')} className="text-sm font-semibold text-gold-600 hover:text-gold-700">View all</button>
+            <button onClick={() => router.push('/orders')} className="text-sm font-semibold text-gold-600 dark:text-gold-400 hover:text-gold-700 cursor-pointer">View all</button>
           </div>
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-400 uppercase bg-white border-b border-gray-100">
+              <thead className="text-xs text-gray-400 uppercase bg-white dark:bg-[#0F1422] border-b border-gray-100 dark:border-white/[0.08]">
                 <tr>
                   <th className="px-2 py-3 font-semibold">Order ID</th>
                   <th className="px-2 py-3 font-semibold">Customer</th>
@@ -622,37 +626,37 @@ export default function DashboardHome() {
                   <tr 
                     key={order.id || idx} 
                     onClick={() => router.push(`/orders/${order.id}`)}
-                    className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="border-b border-gray-50 dark:border-white/[0.06] last:border-0 hover:bg-gray-50 dark:hover:bg-[#151C2F] transition-colors cursor-pointer"
                   >
                     <td className="px-2 py-4 font-bold text-amber-500">{order.orderNumber}</td>
                     <td className="px-2 py-4 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
+                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-200">
                         {order.userProfile?.user?.firstName?.charAt(0) || 'U'}
                       </div>
-                      <span className="font-semibold text-gray-700">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">
                         {order.userProfile?.user?.firstName} {order.userProfile?.user?.lastName}
                       </span>
                     </td>
-                    <td className="px-2 py-4 font-semibold text-gray-900">₹{order.totalAmount.toLocaleString('en-IN')}</td>
+                    <td className="px-2 py-4 font-semibold text-gray-900 dark:text-white">₹{order.totalAmount.toLocaleString('en-IN')}</td>
                     <td className="px-2 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${
-                        order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' : 
-                        order.status === 'PROCESSING' ? 'bg-amber-100 text-amber-700' :
-                        order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-700' :
-                        order.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-700'
+                        order.status === 'DELIVERED' ? 'bg-green-100 dark:bg-emerald-950/60 text-green-700 dark:text-emerald-300' : 
+                        order.status === 'PROCESSING' ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300' :
+                        order.status === 'SHIPPED' ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300' :
+                        order.status === 'CANCELLED' ? 'bg-red-100 dark:bg-rose-950/60 text-red-700 dark:text-rose-300' :
+                        'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                       }`}>
                         {order.status.replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td className="px-2 py-4 text-gray-500 font-medium">
+                    <td className="px-2 py-4 text-gray-500 dark:text-gray-400 font-medium">
                       {new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
                   </tr>
                 ))}
                 {recentOrders.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-2 py-8 text-center text-gray-500">
+                    <td colSpan={5} className="px-2 py-8 text-center text-gray-500 dark:text-gray-400">
                       No recent orders found.
                     </td>
                   </tr>
@@ -663,10 +667,10 @@ export default function DashboardHome() {
         </div>
 
         {/* Activity Feed / Audit Logs */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-[#101524] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-white/[0.08]">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold text-gray-900">Activity Feed</h2>
-            <button className="text-sm font-semibold text-gold-600 hover:text-gold-700">View all</button>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Activity Feed</h2>
+            <button onClick={() => router.push('/journal-logs')} className="text-sm font-semibold text-gold-600 dark:text-gold-400 hover:text-gold-700 cursor-pointer">View all</button>
           </div>
           
           <div className="space-y-6">
@@ -674,10 +678,10 @@ export default function DashboardHome() {
               <div className="animate-pulse space-y-4">
                 {[1,2,3].map(i => (
                   <div key={i} className="flex gap-4">
-                    <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
                     <div className="flex-1 space-y-2 py-1">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                     </div>
                   </div>
                 ))}
@@ -685,7 +689,7 @@ export default function DashboardHome() {
             ) : auditLogs.length > 0 ? (
               auditLogs.map((log) => {
                 // Determine icon and color based on entity/action
-                let iconColor = "bg-blue-100 text-blue-600";
+                let iconColor = "bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400";
                 let Icon = Info;
                 
                 const entityLabel =
@@ -696,15 +700,15 @@ export default function DashboardHome() {
                       : log.entity;
 
                 if (log.action.includes('Delete')) {
-                  iconColor = "bg-red-100 text-red-600";
+                  iconColor = "bg-red-100 text-red-600 dark:bg-rose-950/60 dark:text-rose-400";
                 } else if (log.entity === 'User') {
-                  iconColor = "bg-green-100 text-green-600";
+                  iconColor = "bg-green-100 text-green-600 dark:bg-emerald-950/60 dark:text-emerald-400";
                   Icon = Users;
                 } else if (log.entity === 'Order') {
-                  iconColor = "bg-amber-100 text-amber-600";
+                  iconColor = "bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400";
                   Icon = ShoppingBag;
                 } else if (log.entity === 'ProductCategory' || log.entity === 'ProductSubcategory') {
-                  iconColor = "bg-purple-100 text-purple-600";
+                  iconColor = "bg-purple-100 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400";
                   Icon = ShoppingBag;
                 }
                 
@@ -714,19 +718,19 @@ export default function DashboardHome() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-gray-900">{log.action}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 leading-tight">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{log.action}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">
                         {log.user ? `${log.user.firstName} ${log.user.lastName}` : 'System'} • {entityLabel}
                       </p>
                     </div>
-                    <span className="text-xs font-medium text-gray-400 shrink-0 whitespace-nowrap">
+                    <span className="text-xs font-medium text-gray-400 dark:text-gray-500 shrink-0 whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 );
               })
             ) : (
-              <div className="text-center py-8 text-sm text-gray-500">
+              <div className="text-center py-8 text-sm text-gray-500 dark:text-gray-400">
                 No recent activity logs.
               </div>
             )}

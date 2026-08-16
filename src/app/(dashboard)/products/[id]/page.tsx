@@ -24,6 +24,7 @@ import {
   ZoomIn
 } from "lucide-react";
 import Link from "next/link";
+import { getMediaUrl } from "@/lib/media";
 
 function getYouTubeEmbedUrl(url: string): string | null {
   if (!url) return null;
@@ -498,7 +499,7 @@ export default function ProductDetailsPage() {
                     {hasMedia && activeMedia ? (
                       activeMedia.type === "image" ? (
                         <img
-                          src={activeMedia.url}
+                          src={getMediaUrl(activeMedia.url)}
                           alt={product.title}
                           className="w-full h-full object-contain p-2 cursor-zoom-in"
                           onClick={() => {
@@ -516,7 +517,7 @@ export default function ProductDetailsPage() {
                         />
                       ) : (
                         <video
-                          src={activeMedia.url}
+                          src={getMediaUrl(activeMedia.url)}
                           controls
                           autoPlay
                           className="w-full h-full object-contain bg-black"
@@ -568,7 +569,7 @@ export default function ProductDetailsPage() {
                           >
                             {item.type === "image" ? (
                               <img
-                                src={item.url}
+                                src={getMediaUrl(item.url)}
                                 alt={`Thumbnail ${idx + 1}`}
                                 className="w-full h-full object-cover"
                               />
@@ -666,7 +667,7 @@ export default function ProductDetailsPage() {
               <div className="flex-1 bg-gray-50 flex items-center justify-center min-h-[300px] md:min-h-[500px] relative group">
                 {activeItem.type === "image" ? (
                   <img
-                    src={activeItem.url}
+                    src={getMediaUrl(activeItem.url)}
                     alt={product.title}
                     className="max-w-full max-h-[80vh] object-contain p-6"
                   />
@@ -680,7 +681,7 @@ export default function ProductDetailsPage() {
                   />
                 ) : (
                   <video
-                    src={activeItem.url}
+                    src={getMediaUrl(activeItem.url)}
                     controls
                     autoPlay
                     className="max-w-full max-h-[80vh] object-contain"
@@ -723,7 +724,7 @@ export default function ProductDetailsPage() {
                         }`}
                       >
                         {item.type === "image" ? (
-                          <img src={item.url} alt="" className="w-full h-full object-cover" />
+                          <img src={getMediaUrl(item.url)} alt="" className="w-full h-full object-cover" />
                         ) : item.type === "youtube" ? (
                           <div className="w-full h-full bg-red-950 flex flex-col items-center justify-center">
                             <Play className="h-4 w-4 text-red-500 fill-red-500 mb-0.5" />

@@ -27,6 +27,7 @@ import {
 import { Coupon, CouponMetrics, couponAdminAPI } from "@/lib/api/coupon";
 import { CouponFormModal } from "@/components/coupons/CouponFormModal";
 import { CouponDetailsModal } from "@/components/coupons/CouponDetailsModal";
+import Pagination from "@/components/Pagination";
 
 export default function CouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -444,30 +445,17 @@ export default function CouponsPage() {
           </table>
         </div>
 
-        {/* Pagination Controls */}
-        {pagination.totalPages > 1 && (
-          <div className="p-4 border-t border-gray-200 flex items-center justify-between text-xs text-gray-600">
-            <div>
-              Showing Page <span className="font-bold">{pagination.page}</span> of{" "}
-              <span className="font-bold">{pagination.totalPages}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }))}
-                disabled={pagination.page === 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <button
-                onClick={() => setPagination((p) => ({ ...p, page: Math.min(p.totalPages, p.page + 1) }))}
-                disabled={pagination.page === pagination.totalPages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
+        {/* Pagination Footer */}
+        {!loading && coupons.length > 0 && (
+          <Pagination
+            page={pagination.page}
+            limit={pagination.limit}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            itemLabel="coupons"
+            onPageChange={(newPage) => setPagination((prev) => ({ ...prev, page: newPage }))}
+            onLimitChange={(newLimit) => setPagination((prev) => ({ ...prev, limit: newLimit, page: 1 }))}
+          />
         )}
       </div>
 
