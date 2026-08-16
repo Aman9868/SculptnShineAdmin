@@ -98,31 +98,34 @@ export default function ImageUploadInput({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const aspectClass =
-    aspectRatio === "square"
-      ? "aspect-square"
-      : aspectRatio === "video"
-      ? "aspect-video"
-      : aspectRatio === "banner"
-      ? "aspect-[21/9]"
-      : "h-36";
+  const aspectClass = compact
+    ? "h-28 max-w-[180px] mx-auto"
+    : aspectRatio === "square"
+    ? "h-32 max-w-[180px] mx-auto"
+    : aspectRatio === "video"
+    ? "aspect-video max-h-44"
+    : aspectRatio === "banner"
+    ? "aspect-[21/9] max-h-40"
+    : "h-32 w-full";
 
   return (
     <div className={`space-y-2 ${className}`}>
       <div className="flex items-center justify-between">
         {label && (
-          <label className="text-xs font-bold text-gray-700">
+          <label className="text-xs font-bold text-gray-700 dark:text-gray-200">
             {label} {required && <span className="text-red-500">*</span>}
           </label>
         )}
         
         {/* Toggle between Upload & URL */}
-        <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg text-[11px] font-semibold">
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg text-[11px] font-semibold">
           <button
             type="button"
             onClick={() => setActiveTab("upload")}
             className={`px-2 py-0.5 rounded-md transition-all ${
-              activeTab === "upload" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              activeTab === "upload"
+                ? "bg-white dark:bg-[#161F36] text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Upload File
@@ -131,7 +134,9 @@ export default function ImageUploadInput({
             type="button"
             onClick={() => setActiveTab("url")}
             className={`px-2 py-0.5 rounded-md transition-all ${
-              activeTab === "url" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              activeTab === "url"
+                ? "bg-white dark:bg-[#161F36] text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             }`}
           >
             Direct URL
@@ -153,22 +158,22 @@ export default function ImageUploadInput({
 
       {/* Image Preview & Controls */}
       {value && !imageLoadError ? (
-        <div className="relative rounded-xl border border-gray-200 bg-gray-50 overflow-hidden group">
-          <div className={`w-full ${aspectClass} flex items-center justify-center bg-gray-100 overflow-hidden`}>
+        <div className="relative rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-[#101524] overflow-hidden group">
+          <div className={`w-full ${aspectClass} flex items-center justify-center bg-gray-100 dark:bg-[#13192B] p-2 overflow-hidden`}>
             <img
               src={getMediaUrl(value)}
               alt="Preview"
-              className="w-full h-full object-contain"
+              className="max-h-full max-w-full object-contain"
               onError={() => setImageLoadError(true)}
             />
           </div>
 
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="px-3 py-1.5 bg-white/90 hover:bg-white text-gray-800 rounded-lg text-xs font-bold shadow transition-transform transform hover:scale-105 flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 bg-white/90 dark:bg-[#161F36] hover:bg-white dark:hover:bg-[#1C2744] text-gray-800 dark:text-white rounded-lg text-xs font-bold shadow transition-transform transform hover:scale-105 flex items-center gap-1 cursor-pointer"
             >
               <UploadCloud className="h-3.5 w-3.5" /> Replace
             </button>
@@ -182,12 +187,12 @@ export default function ImageUploadInput({
             </button>
           </div>
 
-          <div className="p-2 border-t border-gray-100 bg-white flex items-center justify-between text-xs text-gray-500">
-            <span className="truncate max-w-[220px] font-mono text-[11px]">{value}</span>
+          <div className="p-2 border-t border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#0D121F] flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <span className="truncate max-w-[200px] font-mono text-[11px]">{value}</span>
             <button
               type="button"
               onClick={clearImage}
-              className="text-red-500 hover:text-red-700 font-semibold text-[11px]"
+              className="text-red-500 hover:text-red-700 font-semibold text-[11px] cursor-pointer"
             >
               Clear
             </button>
@@ -200,29 +205,29 @@ export default function ImageUploadInput({
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className={`w-full ${compact ? "h-28" : "h-36"} border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer ${
+          className={`w-full ${compact ? "h-24" : "h-28"} border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer ${
             isDragging
-              ? "border-gold-500 bg-gold-50/50"
+              ? "border-gold-500 bg-gold-50/50 dark:bg-gold-950/30"
               : isUploading
-              ? "border-gray-200 bg-gray-50 cursor-wait opacity-80"
-              : "border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300"
+              ? "border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-[#13192B]/40 cursor-wait opacity-80"
+              : "border-gray-200 dark:border-white/[0.12] bg-gray-50/70 dark:bg-[#13192B]/50 hover:bg-gray-100 dark:hover:bg-[#161F36] hover:border-gray-300 dark:hover:border-white/[0.2]"
           }`}
         >
           {isUploading ? (
-            <div className="flex flex-col items-center justify-center text-center p-4">
-              <Loader2 className="h-6 w-6 text-gold-500 animate-spin mb-2" />
-              <p className="text-xs font-bold text-gray-700">Uploading Image...</p>
-              <p className="text-[11px] text-gray-400 mt-0.5">Please wait while the file is being processed</p>
+            <div className="flex flex-col items-center justify-center text-center p-3">
+              <Loader2 className="h-5 w-5 text-gold-500 animate-spin mb-1.5" />
+              <p className="text-xs font-bold text-gray-700 dark:text-gray-200">Uploading Image...</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">Processing file...</p>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center text-center p-4">
-              <div className="p-2.5 bg-white rounded-full shadow-sm mb-2 text-gray-500 group-hover:text-gold-500 transition-colors">
-                <UploadCloud className="h-5 w-5" />
+            <div className="flex flex-col items-center justify-center text-center p-3">
+              <div className="p-2 bg-white dark:bg-[#1A2238] rounded-full shadow-2xs mb-1.5 text-gray-500 dark:text-gray-400 group-hover:text-gold-500 transition-colors">
+                <UploadCloud className="h-4 w-4" />
               </div>
-              <p className="text-xs font-bold text-gray-700">
-                Click to browse <span className="text-gray-400 font-normal">or drag & drop</span>
+              <p className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                Click to browse <span className="text-gray-400 dark:text-gray-500 font-normal">or drag & drop</span>
               </p>
-              <p className="text-[11px] text-gray-400 mt-1">{helperText}</p>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{helperText}</p>
             </div>
           )}
         </div>
@@ -239,19 +244,19 @@ export default function ImageUploadInput({
                 setImageLoadError(false);
               }}
               placeholder={placeholder}
-              className="w-full pl-9 pr-8 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-gold-500 font-medium"
+              className="w-full pl-9 pr-8 py-2 border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#101524] text-gray-900 dark:text-white rounded-xl text-xs outline-none focus:ring-2 focus:ring-gold-500 font-medium"
             />
             {value && (
               <button
                 type="button"
                 onClick={clearImage}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
-          <p className="text-[11px] text-gray-400">{helperText}</p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500">{helperText}</p>
         </div>
       )}
     </div>
