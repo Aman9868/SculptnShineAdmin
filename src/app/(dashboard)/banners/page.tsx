@@ -31,7 +31,9 @@ import {
   Link as LinkIcon,
   Maximize2,
   Info,
-  Ratio
+  Ratio,
+  Smartphone,
+  Monitor
 } from "lucide-react";
 
 export const BANNER_TYPE_CONFIG: Record<string, {
@@ -51,10 +53,10 @@ export const BANNER_TYPE_CONFIG: Record<string, {
     color: "bg-purple-50 text-purple-700 border-purple-200",
     icon: Layers,
     description: "Main rotating hero carousel on the homepage top section",
-    recommendedSize: "1920 × 600 px",
-    aspectRatio: "16:5 (Desktop Ultrawide) or 16:9",
+    recommendedSize: "1920 × 800 px (Desktop) | 1080 × 608 px (Mobile)",
+    aspectRatio: "2.4:1 (Desktop) | 16:9 (Mobile)",
     formats: "JPG, PNG, WebP or MP4 (Max 50MB)",
-    guide: "Used for the primary hero carousel on the homepage. Keep key subject & text centered so it scales on mobile.",
+    guide: "Desktop: 1920×800 px (2.4:1). Mobile: 1080×608 px (16:9). Upload a 16:9 mobile banner for an ideal, balanced phone view that fits all devices.",
   },
   PROMO: {
     label: "Promo Banner",
@@ -62,8 +64,8 @@ export const BANNER_TYPE_CONFIG: Record<string, {
     color: "bg-amber-50 text-amber-700 border-amber-200",
     icon: Tag,
     description: "Promotional discount cards and limited-time offer banners",
-    recommendedSize: "1200 × 500 px",
-    aspectRatio: "12:5 or 2.4:1 Landscape",
+    recommendedSize: "1200 × 500 px (Desktop) | 800 × 450 px (Mobile)",
+    aspectRatio: "12:5 Landscape (Desktop) | 16:9 (Mobile)",
     formats: "JPG, PNG, WebP (Max 15MB)",
     guide: "Used for promotional discount cards and flash sale callouts across the store.",
   },
@@ -142,8 +144,8 @@ const getTypeConfig = (type: string) => {
     color: "bg-gray-100 text-gray-700 border-gray-200",
     icon: ImageIcon,
     description: "General store banner",
-    recommendedSize: "1920 × 600 px",
-    aspectRatio: "16:9 or 16:5",
+    recommendedSize: "1920 × 800 px",
+    aspectRatio: "16:9 or 2.4:1",
     formats: "JPG, PNG, WebP",
     guide: "Upload high resolution banner media.",
   };
@@ -167,6 +169,7 @@ const emptyForm = {
   title: "",
   subtitle: "",
   image: "",
+  mobileImage: "",
   video: "",
   link: "",
   ctaText: "",
@@ -185,17 +188,17 @@ export default function BannersPage() {
   const { showToast } = useToast();
 
   const [banners, setBanners] = useState<any[]>([]);
-  const [kpis, setKpis] = useState({ 
-    total: 0, 
-    active: 0, 
-    inactive: 0, 
-    scheduled: 0, 
-    homeGeneralCount: 0, 
-    promoCount: 0, 
+  const [kpis, setKpis] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    scheduled: 0,
+    homeGeneralCount: 0,
+    promoCount: 0,
     categoryHeaderCount: 0,
     brandHeaderCount: 0,
     authBgCount: 0,
-    homeProductCount: 0 
+    homeProductCount: 0
   });
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -208,12 +211,15 @@ export default function BannersPage() {
   const [products, setProducts] = useState<any[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const mobileFileInputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingMobile, setIsDraggingMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<any | null>(null);
   const [formData, setFormData] = useState({ ...emptyForm });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingMobile, setIsUploadingMobile] = useState(false);
 
   const [previewBanner, setPreviewBanner] = useState<any | null>(null);
 
@@ -308,7 +314,7 @@ export default function BannersPage() {
         showToast("Video uploaded successfully!", "success");
       } else {
         setFormData((prev) => ({ ...prev, image: fileUrl }));
-        showToast("Image uploaded successfully!", "success");
+        showToast("Desktop image uploaded successfully!", "success");
       }
     } catch (err: any) {
       showToast(err.response?.data?.message || "Failed to upload file. Make sure it is an image or video.", "error");
@@ -317,9 +323,57 @@ export default function BannersPage() {
     }
   };
 
+  const uploadMobileFile = async (file: File) => {
+    if (file.size > 15 * 1024 * 1024) {
+      showToast("Mobile image must be under 15MB", "error");
+      return;
+    }
+
+    // Validate 16:9 aspect ratio and advise admin
+    if (typeof window !== "undefined") {
+      const img = new window.Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const ratio = img.width / img.height;
+        const target16by9 = 16 / 9; // ~1.777
+        const diff = Math.abs(ratio - target16by9);
+        if (diff > 0.35) {
+          showToast(
+            `Image size is ${img.width}×${img.height} (${ratio.toFixed(2)}:1). Recommended is 16:9 ratio (e.g. 1080×608 px) for optimal mobile fit.`,
+            "info"
+          );
+        }
+      };
+      img.src = objectUrl;
+    }
+
+    const fileFormData = new FormData();
+    fileFormData.append("file", file);
+
+    setIsUploadingMobile(true);
+    try {
+      const res = await api.post("/upload", fileFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const fileUrl = res.data.url;
+      setFormData((prev) => ({ ...prev, mobileImage: fileUrl }));
+      showToast("16:9 Mobile banner image uploaded successfully!", "success");
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to upload mobile image", "error");
+    } finally {
+      setIsUploadingMobile(false);
+    }
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) uploadFile(file);
+  };
+
+  const handleMobileFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadMobileFile(file);
   };
 
   const openAddModal = () => {
@@ -334,6 +388,7 @@ export default function BannersPage() {
       title: banner.title || "",
       subtitle: banner.subtitle || "",
       image: banner.image || "",
+      mobileImage: banner.mobileImage || "",
       video: banner.video || "",
       link: banner.link || "",
       ctaText: banner.ctaText || "",
@@ -374,7 +429,7 @@ export default function BannersPage() {
       return;
     }
     if (!formData.image.trim() && !formData.video.trim()) {
-      showToast("Either Banner Image or Video is required", "error");
+      showToast("Either Desktop Banner Image or Video is required", "error");
       return;
     }
 
@@ -382,6 +437,7 @@ export default function BannersPage() {
     try {
       const payload = {
         ...formData,
+        mobileImage: formData.mobileImage?.trim() || null,
         sortOrder: Number(formData.sortOrder) || 0,
         startDate: formData.startDate || null,
         endDate: formData.endDate || null,
@@ -474,16 +530,14 @@ export default function BannersPage() {
               setActiveTab(tab.key);
               setPagination((prev) => ({ ...prev, page: 1 }));
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-              activeTab === tab.key
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeTab === tab.key
                 ? "bg-white text-gray-900 shadow-sm border border-gray-200/60"
                 : "text-gray-500 hover:text-gray-900"
-            }`}
+              }`}
           >
             {tab.label}
-            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-              activeTab === tab.key ? "bg-gold-100 text-gold-700" : "bg-gray-200 text-gray-600"
-            }`}>
+            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${activeTab === tab.key ? "bg-gold-100 text-gold-700" : "bg-gray-200 text-gray-600"
+              }`}>
               {tab.count}
             </span>
           </button>
@@ -686,11 +740,10 @@ export default function BannersPage() {
                         type="button"
                         key={key}
                         onClick={() => handleTypeSelect(key)}
-                        className={`flex items-start gap-2.5 p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                          isSelected
+                        className={`flex items-start gap-2.5 p-3 rounded-2xl border text-left transition-all cursor-pointer ${isSelected
                             ? "border-gold-500 bg-gold-50/50 ring-2 ring-gold-500/20"
                             : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         <div className={`p-1.5 rounded-lg shrink-0 ${isSelected ? "bg-gold-500 text-white" : "bg-gray-100 text-gray-600"}`}>
                           <Icon className="w-4 h-4" />
@@ -800,8 +853,8 @@ export default function BannersPage() {
                       formData.type === "PROMO"
                         ? "e.g. Summer Flash Sale"
                         : formData.type === "LOGIN_BG"
-                        ? "e.g. Welcome to Sculpt & Shine"
-                        : "e.g. Premium Nutrition for Champions"
+                          ? "e.g. Welcome to Sculpt & Shine"
+                          : "e.g. Premium Nutrition for Champions"
                     }
                   />
                 </div>
@@ -854,11 +907,15 @@ export default function BannersPage() {
                 </div>
               )}
 
+              {/* 1. Desktop Banner Media (Primary) */}
               <div className="space-y-3 bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-200/80">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Banner Media (Image or Video) *
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <Monitor className="w-4 h-4 text-purple-600 shrink-0" />
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Desktop Banner Media (Primary) *
+                    </label>
+                  </div>
                   <span className="text-[11px] font-bold text-gold-600 bg-gold-50 px-2 py-0.5 rounded-md border border-gold-200/60">
                     {getTypeConfig(formData.type).recommendedSize}
                   </span>
@@ -888,16 +945,15 @@ export default function BannersPage() {
                     const file = e.dataTransfer.files?.[0];
                     if (file) uploadFile(file);
                   }}
-                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer bg-white select-none ${
-                    isDragging
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer bg-white select-none ${isDragging
                       ? "border-gold-600 bg-gold-50/50 scale-[1.01]"
                       : "border-gray-300 hover:border-gold-500 hover:bg-gold-50/20"
-                  }`}
+                    }`}
                 >
                   {isUploading ? (
                     <div className="flex flex-col items-center justify-center gap-2 text-gold-600 font-bold text-xs py-2">
                       <Loader2 className="h-6 w-6 animate-spin" />
-                      <span>Uploading media...</span>
+                      <span>Uploading desktop media...</span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center text-gray-500 py-1">
@@ -905,10 +961,10 @@ export default function BannersPage() {
                         <UploadCloud className="h-6 w-6" />
                       </div>
                       <p className="text-xs font-bold text-gray-900">
-                        Click to browse file, or drag and drop here
+                        Click to browse desktop file, or drag and drop here
                       </p>
                       <p className="text-[11px] text-gray-400 mt-0.5">
-                        High resolution JPG, PNG, WebP or MP4 video (up to 50MB)
+                        High resolution JPG, PNG, WebP (1920×800px) or MP4 video (up to 50MB)
                       </p>
                     </div>
                   )}
@@ -952,7 +1008,7 @@ export default function BannersPage() {
                   );
                 })()}
 
-                <div className="text-center text-[10px] font-extrabold text-gray-400 uppercase tracking-wider pt-1">— OR DIRECT MEDIA URL —</div>
+                <div className="text-center text-[10px] font-extrabold text-gray-400 uppercase tracking-wider pt-1">— OR DIRECT DESKTOP URL —</div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
@@ -978,7 +1034,7 @@ export default function BannersPage() {
                   </div>
                 </div>
 
-                {/* Media Preview Box */}
+                {/* Desktop Media Preview Box */}
                 {(formData.image || formData.video) && (
                   <div className="mt-3 relative h-48 rounded-2xl overflow-hidden bg-black/95 border border-gray-300 flex items-center justify-center shadow-inner">
                     {formData.video ? (
@@ -986,7 +1042,7 @@ export default function BannersPage() {
                     ) : (
                       <img
                         src={getMediaUrl(formData.image)}
-                        alt="Preview"
+                        alt="Desktop Preview"
                         className="w-full h-full object-cover"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                       />
@@ -995,12 +1051,114 @@ export default function BannersPage() {
                       type="button"
                       onClick={() => setFormData({ ...formData, image: "", video: "" })}
                       className="absolute top-2.5 right-2.5 p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-colors cursor-pointer shadow-md"
-                      title="Remove Media"
+                      title="Remove Desktop Media"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* 2. Mobile Banner Image (Smartphone 16:9 Optimized) */}
+              <div className="space-y-3 bg-blue-50/50 p-4 sm:p-5 rounded-2xl border border-blue-200/80">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-blue-600 shrink-0" />
+                    <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
+                      Mobile Banner Image (Optional)
+                    </label>
+                  </div>
+                  <span className="text-[11px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md border border-blue-300/60">
+                    1080 × 608 px (16:9 Ratio)
+                  </span>
+                </div>
+
+                {/* Hidden Native Mobile File Input */}
+                <input
+                  ref={mobileFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleMobileFileUpload}
+                  disabled={isUploadingMobile}
+                  className="hidden"
+                />
+
+                {/* Custom Mobile Upload Dropzone */}
+                <div
+                  onClick={() => !isUploadingMobile && mobileFileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingMobile(true);
+                  }}
+                  onDragLeave={() => setIsDraggingMobile(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingMobile(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) uploadMobileFile(file);
+                  }}
+                  className={`border-2 border-dashed rounded-2xl p-5 text-center transition-all cursor-pointer bg-white select-none ${isDraggingMobile
+                      ? "border-blue-600 bg-blue-50/50 scale-[1.01]"
+                      : "border-blue-200 hover:border-blue-500 hover:bg-blue-50/20"
+                    }`}
+                >
+                  {isUploadingMobile ? (
+                    <div className="flex flex-col items-center justify-center gap-2 text-blue-600 font-bold text-xs py-2">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <span>Uploading mobile banner...</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-gray-500 py-1">
+                      <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-1.5 border border-blue-100 shadow-xs">
+                        <Smartphone className="h-5 w-5" />
+                      </div>
+                      <p className="text-xs font-bold text-gray-900">
+                        Upload 16:9 Mobile Banner
+                      </p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        16:9 Mobile Aspect Ratio (e.g. 1080×608 px or 1280×720 px)
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-600 mb-1">Direct Mobile Image URL (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.mobileImage}
+                    onChange={(e) => setFormData({ ...formData, mobileImage: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    placeholder="https://...mobile-banner.png"
+                  />
+                </div>
+
+                {/* Mobile Media Preview Box in 16:9 Ratio */}
+                {formData.mobileImage && (
+                  <div className="mt-2 relative w-full max-w-[280px] aspect-[16/9] mx-auto rounded-xl overflow-hidden bg-black/95 border-2 border-blue-300 flex items-center justify-center shadow-md">
+                    <img
+                      src={getMediaUrl(formData.mobileImage)}
+                      alt="Mobile Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                    <div className="absolute top-2 left-2 bg-blue-600/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">
+                      16:9 MOBILE VIEW
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, mobileImage: "" })}
+                      className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-colors cursor-pointer shadow-md"
+                      title="Remove Mobile Media"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-blue-900/80 font-medium leading-relaxed bg-blue-100/50 p-2.5 rounded-xl border border-blue-200/50">
+                  📱 <strong className="font-bold">16:9 Mobile Optimization:</strong> Formatted for smartphone screens. If left blank, smartphones will automatically display the desktop banner as fallback.
+                </p>
               </div>
 
               {(formData.type === "PROMO" || formData.type === "HOME_GENERAL") && (

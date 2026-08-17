@@ -28,11 +28,43 @@ export default function NotificationDropdown() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  const isInitialLoadRef = useRef(true);
+  const knownNotificationIdsRef = useRef<Set<string>>(new Set());
+
   const fetchNotifications = async () => {
     try {
       const res = await notificationAPI.getMyNotifications(30);
       if (res.success && Array.isArray(res.data)) {
-        setNotifications(res.data);
+        const newNotifications: AdminNotification[] = res.data;
+        
+        // On first load, record all existing IDs so we don't spam popups for old unread notifications
+        if (isInitialLoadRef.current) {
+          newNotifications.forEach((n) => knownNotificationIdsRef.current.add(n.id));
+          isInitialLoadRef.current = false;
+        } else {
+          // Detect truly new incoming notifications
+          const brandNewNotifications = newNotifications.filter(
+            (n) => !knownNotificationIdsRef.current.has(n.id)
+          );
+
+          if (
+            brandNewNotifications.length > 0 &&
+            typeof window !== 'undefined' &&
+            'Notification' in window &&
+            Notification.permission === 'granted'
+          ) {
+            brandNewNotifications.forEach((latest) => {
+              knownNotificationIdsRef.current.add(latest.id);
+              new Notification(`🛍️ ${latest.title}`, {
+                body: latest.message,
+                icon: '/assets/logo.png',
+                tag: latest.id, // Deduplicate in browser
+              });
+            });
+          }
+        }
+
+        setNotifications(newNotifications);
       }
     } catch (err) {
       // Silently ignore in polling
@@ -45,13 +77,15 @@ export default function NotificationDropdown() {
     const interval = setInterval(fetchNotifications, 5000);
 
     // Register Service Worker for Admin Push Notifications
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
         .then(async (registration) => {
-          const subscription = await registration.pushManager.getSubscription();
-          if (subscription) {
-            setIsPushSubscribed(true);
+          if ('PushManager' in window) {
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+              setIsPushSubscribed(true);
+            }
           }
         })
         .catch((err) => console.warn('Admin ServiceWorker registration failed:', err));
@@ -72,32 +106,51 @@ export default function NotificationDropdown() {
   }, []);
 
   const enablePushNotifications = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
       alert('Push notifications are not supported on this browser.');
       return;
     }
 
     setIsSubscribing(true);
     try {
+      // 1. Request Chrome browser notification permission
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        alert('Notification permission was denied in browser settings.');
+        alert('Notification permission was denied in your browser settings. Please allow notifications for this site in Chrome.');
         setIsSubscribing(false);
         return;
       }
 
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
+      // 2. Register Service Worker & subscribe
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        if ('PushManager' in window) {
+          let subscription = await registration.pushManager.getSubscription();
+          if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            });
+          }
 
-      const res = await notificationAPI.subscribe(subscription);
-      if (res.success) {
-        setIsPushSubscribed(true);
+          if (subscription) {
+            await notificationAPI.subscribe(subscription).catch((err) => {
+              console.warn('Admin push subscribe sync warning:', err);
+            });
+          }
+        }
       }
-    } catch (err) {
+
+      setIsPushSubscribed(true);
+
+      // 3. Trigger immediate native confirmation push notification
+      new Notification('👑 Sculpt & Shine Admin Push Active!', {
+        body: 'You will receive instant native alerts for new orders, payments, and low stock notices.',
+        icon: '/assets/logo.png',
+      });
+    } catch (err: any) {
       console.error('Failed to subscribe admin push:', err);
+      alert('Could not enable push: ' + (err?.message || 'Unknown error'));
     } finally {
       setIsSubscribing(false);
     }
