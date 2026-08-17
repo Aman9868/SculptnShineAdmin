@@ -3,10 +3,13 @@ self.addEventListener('push', (event) => {
 
   try {
     const data = event.data.json();
+    const tagId = data.tag || data.id || data.title || 'admin_notification';
     const options = {
       body: data.body || data.message || 'New admin notification',
       icon: '/assets/logo.png',
       badge: '/assets/logo.png',
+      tag: tagId,
+      renotify: false,
       data: {
         url: data.url || data.link || '/orders',
       },
