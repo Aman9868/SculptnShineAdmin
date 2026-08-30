@@ -97,8 +97,8 @@ export const BANNER_TYPE_CONFIG: Record<string, {
     color: "bg-rose-50 text-rose-700 border-rose-200",
     icon: Package,
     description: "Product showcase spotlight card on homepage",
-    recommendedSize: "1200 × 600 px (or 800 × 800 px)",
-    aspectRatio: "2:1 Wide or 1:1 Square",
+    recommendedSize: "600 × 800 px",
+    aspectRatio: "3:4 (Portrait Card)",
     formats: "JPG, PNG, WebP (Max 15MB)",
     guide: "Showcases featured products with transparent background cutouts or action shots.",
   },
@@ -180,6 +180,7 @@ const emptyForm = {
   startDate: "",
   endDate: "",
   categoryId: "",
+  subcategoryId: "",
   brandId: "",
   productId: "",
 };
@@ -207,6 +208,7 @@ export default function BannersPage() {
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
 
   const [categories, setCategories] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
@@ -239,13 +241,17 @@ export default function BannersPage() {
   useEffect(() => {
     const loadContextData = async () => {
       try {
-        const [catsRes, brandsRes, prodsRes] = await Promise.all([
-          api.get("/categories").catch(() => null),
-          api.get("/brands").catch(() => null),
+        const [catsRes, subcatsRes, brandsRes, prodsRes] = await Promise.all([
+          api.get("/categories?limit=500").catch(() => null),
+          api.get("/subcategories?limit=500").catch(() => null),
+          api.get("/brands?limit=500").catch(() => null),
           api.get("/products?limit=500").catch(() => null),
         ]);
         if (catsRes?.data?.data?.categories) setCategories(catsRes.data.data.categories);
         else if (catsRes?.data?.data) setCategories(catsRes.data.data);
+
+        if (subcatsRes?.data?.data?.subcategories) setSubcategories(subcatsRes.data.data.subcategories);
+        else if (subcatsRes?.data?.data) setSubcategories(subcatsRes.data.data);
 
         if (brandsRes?.data?.data?.brands) setBrands(brandsRes.data.data.brands);
         else if (brandsRes?.data?.data) setBrands(brandsRes.data.data);
@@ -396,9 +402,10 @@ export default function BannersPage() {
       targetType: banner.targetType || "NONE",
       status: banner.status || "ACTIVE",
       sortOrder: banner.sortOrder || 0,
-      startDate: banner.startDate ? new Date(banner.startDate).toISOString().slice(0, 16) : "",
-      endDate: banner.endDate ? new Date(banner.endDate).toISOString().slice(0, 16) : "",
+      startDate: banner.startDate ? banner.startDate.split("T")[0] : "",
+      endDate: banner.endDate ? banner.endDate.split("T")[0] : "",
       categoryId: banner.categoryId || "",
+      subcategoryId: banner.subcategoryId || "",
       brandId: banner.brandId || "",
       productId: banner.productId || "",
     });
@@ -440,8 +447,9 @@ export default function BannersPage() {
         mobileImage: formData.mobileImage?.trim() || null,
         sortOrder: Number(formData.sortOrder) || 0,
         startDate: formData.startDate || null,
-        endDate: formData.endDate || null,
+        endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
         categoryId: formData.categoryId || null,
+        subcategoryId: formData.subcategoryId || null,
         brandId: formData.brandId || null,
         productId: formData.productId || null,
       };
@@ -773,6 +781,7 @@ export default function BannersPage() {
                       setFormData((prev) => ({
                         ...prev,
                         categoryId: catId,
+                        subcategoryId: "",
                         link: selectedCat ? `/category/${selectedCat.slug}` : prev.link,
                         title: prev.title || (selectedCat ? `${selectedCat.name} Collection` : ""),
                       }));
@@ -783,6 +792,66 @@ export default function BannersPage() {
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.name} ({cat.slug})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {(formData.type === "PROMO" || formData.type === "HOME_PRODUCT") && !formData.categoryId && (
+                <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-100 space-y-3">
+                  <label className="block text-xs font-bold text-blue-900 uppercase tracking-wider">
+                    Select Target Category (Optional)
+                  </label>
+                  <select
+                    value={formData.categoryId}
+                    onChange={(e) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        categoryId: e.target.value,
+                        subcategoryId: "" // reset subcategory when category changes
+                      }));
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl border border-blue-200 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="">-- General Promo (No Category) --</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name} ({cat.slug})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Subcategory selector appears if it's PROMO or CATEGORY_HEADER and they selected a Category */}
+              {(formData.type === "CATEGORY_HEADER" || formData.type === "PROMO" || formData.type === "HOME_PRODUCT") && formData.categoryId && (
+                <div className="p-4 bg-indigo-50/60 rounded-2xl border border-indigo-200 space-y-4 relative">
+                  <label className="block text-xs font-bold text-indigo-900 uppercase tracking-wider">
+                    Select Target Subcategory (Optional)
+                  </label>
+                  <select
+                    value={formData.subcategoryId}
+                    onChange={(e) => {
+                      const subCatId = e.target.value;
+                      const selectedCategory = categories.find(c => c.id === formData.categoryId);
+                      const selectedSubCat = subcategories.find((c: any) => c.id === subCatId);
+                      setFormData((prev) => ({
+                        ...prev,
+                        subcategoryId: subCatId,
+                        link: selectedSubCat 
+                          ? `/category/${selectedCategory?.slug}/${selectedSubCat.slug}` 
+                          : `/category/${selectedCategory?.slug}`,
+                      }));
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl border border-indigo-200 bg-white text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                  >
+                    <option value="">-- All Subcategories (Category Level) --</option>
+                    {subcategories
+                      .filter((sc) => sc.categoryId === formData.categoryId)
+                      .map((subcat: any) => (
+                      <option key={subcat.id} value={subcat.id}>
+                        {subcat.name} ({subcat.slug})
                       </option>
                     ))}
                   </select>
