@@ -26,6 +26,7 @@ import { useToast } from "@/context/ToastContext";
 import { getMediaUrl } from "@/lib/media";
 import * as XLSX from "xlsx";
 import BulkUploadModal from "@/components/products/BulkUploadModal";
+import SearchableBrandSelect from "@/components/SearchableBrandSelect";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -312,22 +313,16 @@ export default function ProductsPage() {
               ))}
             </select>
 
-            {/* Brand Filter */}
-            <select
+            {/* Searchable Brand Filter */}
+            <SearchableBrandSelect
+              brands={brands}
               value={selectedBrand}
-              onChange={(e) => {
-                setSelectedBrand(e.target.value);
+              onChange={(brandId) => {
+                setSelectedBrand(brandId);
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
-              className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-gold-500 outline-none transition-all"
-            >
-              <option value="">All Brands</option>
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+              placeholder="All Brands"
+            />
 
             {/* Status Filter */}
             <select
