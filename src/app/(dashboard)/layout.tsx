@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import NotificationDropdown from "@/components/layout/NotificationDropdown";
 import MaintenanceAlertBanner from "@/components/common/MaintenanceAlertBanner";
+import GlobalSearchModal from "@/components/GlobalSearchModal";
 import { removeTokens, getToken } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { useTheme } from "@/context/ThemeContext";
@@ -102,9 +103,22 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
   const [user, setUser] = useState<any>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  // Global keyboard shortcut: Ctrl+K / Cmd+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -462,45 +476,50 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0 overflow-y-auto bg-[#FAFAFA] dark:bg-[#0B0F19]">
         <MaintenanceAlertBanner />
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0F172A] px-4 sm:gap-x-6 sm:px-6 lg:px-8 transition-colors">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-2 sm:gap-x-4 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0F172A] px-3 sm:px-6 lg:px-8 transition-colors">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 dark:text-gray-300 lg:hidden"
+            className="p-2 text-gray-700 dark:text-gray-300 lg:hidden shrink-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={() => setSidebarOpen(true)}
           >
             <span className="sr-only">Open sidebar</span>
-            <Menu className="h-6 w-6" aria-hidden="true" />
+            <Menu className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
           </button>
 
-          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 justify-between items-center">
+          <div className="flex flex-1 gap-x-2 sm:gap-x-4 self-stretch lg:gap-x-6 justify-between items-center min-w-0">
 
-            {/* Global Search */}
-            <div className="flex-1 max-w-md hidden sm:block relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Search className="h-4 w-4 text-gray-400" aria-hidden="true" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search anything..."
-                className="block w-full rounded-xl border-0 py-2 pl-10 pr-12 text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-200 dark:ring-gray-700 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gold-500 sm:text-sm sm:leading-6 bg-gray-50 dark:bg-gray-800/80"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <kbd className="inline-flex items-center rounded border border-gray-200 dark:border-gray-700 px-1 font-sans text-[10px] text-gray-400">Ctrl + K</kbd>
-              </div>
+            {/* Global Search Command Palette Trigger */}
+            <div className="flex-1 max-w-[180px] xs:max-w-xs sm:max-w-md">
+              <button
+                type="button"
+                onClick={() => setSearchModalOpen(true)}
+                className="w-full flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 py-1.5 sm:py-2 px-2.5 sm:px-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 bg-gray-50 hover:bg-gray-100/80 dark:bg-gray-800/80 dark:hover:bg-gray-800 transition-all cursor-pointer shadow-2xs group text-left"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 group-hover:text-gold-500 transition-colors shrink-0" aria-hidden="true" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors truncate">
+                    Search...
+                  </span>
+                </div>
+                <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-1.5 py-0.5 font-sans text-[10px] font-bold text-gray-400 dark:text-gray-500 shadow-2xs shrink-0 ml-1">
+                  Ctrl + K
+                </kbd>
+              </button>
             </div>
 
-            <div className="flex items-center gap-x-3 lg:gap-x-4">
+            {/* Right Action Icons */}
+            <div className="ml-auto flex items-center gap-x-1.5 sm:gap-x-3 lg:gap-x-4 shrink-0">
 
               {/* Quick Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-xl text-gray-500 hover:text-gold-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gold-400 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-xl text-gray-500 hover:text-gold-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gold-400 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                 title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
                 {isDark ? (
-                  <Sun className="h-5 w-5 text-amber-400 animate-in spin-in-180 duration-300" />
+                  <Sun className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-amber-400 animate-in spin-in-180 duration-300" />
                 ) : (
-                  <Moon className="h-5 w-5 text-gray-600 animate-in spin-in-180 duration-300" />
+                  <Moon className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-gray-600 animate-in spin-in-180 duration-300" />
                 )}
               </button>
 
@@ -594,6 +613,12 @@ export default function DashboardLayout({
           </div>
         </main>
       </div>
+
+      {/* Global Command Palette / Search Modal */}
+      <GlobalSearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+      />
     </div>
   );
 }
