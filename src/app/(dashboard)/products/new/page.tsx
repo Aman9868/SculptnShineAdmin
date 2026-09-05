@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2, UploadCloud, Package } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "@/components/RichTextEditor";
 import { getMediaUrl } from "@/lib/media";
+import SearchableSelect from "@/components/SearchableSelect";
 
 export default function AddNewProductPage() {
   const router = useRouter();
@@ -451,44 +452,40 @@ export default function AddNewProductPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Category</label>
-                  <select
-                    name="categoryId"
+                  <SearchableSelect
+                    options={categories}
                     value={formData.categoryId}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-medium text-gray-700"
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        categoryId: val,
+                        subcategoryId: "",
+                      }));
+                    }}
+                    placeholder="Select Category"
+                    searchPlaceholder="Search category..."
+                  />
                   <p className="text-xs text-gray-500">Parent product category</p>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Subcategory</label>
-                  <select
-                    name="subcategoryId"
+                  <SearchableSelect
+                    options={subcategories}
                     value={formData.subcategoryId}
-                    onChange={handleChange}
+                    onChange={(val) => {
+                      setFormData((prev) => ({ ...prev, subcategoryId: val }));
+                    }}
                     disabled={!formData.categoryId || subcategories.length === 0}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-medium text-gray-700 disabled:bg-gray-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">
-                      {!formData.categoryId
+                    placeholder={
+                      !formData.categoryId
                         ? "Select category first"
                         : subcategories.length === 0
                         ? "No subcategories found"
-                        : "Select Subcategory"}
-                    </option>
-                    {subcategories.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+                        : "Select Subcategory"
+                    }
+                    searchPlaceholder="Search subcategory..."
+                  />
                   <p className="text-xs text-gray-500">Subcategory under selected category</p>
                 </div>
               </div>
@@ -519,28 +516,34 @@ export default function AddNewProductPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Brand Name</label>
                   {!isCustomBrand ? (
-                    <select
-                      value={formData.brandId || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "__CUSTOM__") {
+                    <div className="flex gap-2">
+                      <div className="flex-1 min-w-0">
+                        <SearchableSelect
+                          options={brandsList}
+                          value={formData.brandId || ""}
+                          onChange={(val, opt) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              brandId: val,
+                              brand: opt ? opt.name : "",
+                            }));
+                          }}
+                          placeholder="Select Brand"
+                          searchPlaceholder="Search brand..."
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
                           setIsCustomBrand(true);
                           setFormData((prev) => ({ ...prev, brandId: "", brand: "" }));
-                        } else {
-                          const selected = brandsList.find((b) => b.id === val);
-                          setFormData((prev) => ({ ...prev, brandId: val, brand: selected ? selected.name : "" }));
-                        }
-                      }}
-                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-gold-500 outline-none transition-all font-medium text-gray-700"
-                    >
-                      <option value="">Select Brand</option>
-                      {brandsList.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.name}
-                        </option>
-                      ))}
-                      <option value="__CUSTOM__">➕ Type custom brand (auto-creates brand entry)</option>
-                    </select>
+                        }}
+                        className="px-3.5 py-2.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer"
+                        title="Add custom brand"
+                      >
+                        ➕ Custom
+                      </button>
+                    </div>
                   ) : (
                     <div className="flex gap-2">
                       <input
@@ -557,9 +560,9 @@ export default function AddNewProductPage() {
                           setIsCustomBrand(false);
                           setFormData((prev) => ({ ...prev, brand: "", brandId: "" }));
                         }}
-                        className="px-3 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-200"
+                        className="px-3.5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-200 transition-all shrink-0 cursor-pointer"
                       >
-                        Cancel
+                        List
                       </button>
                     </div>
                   )}
